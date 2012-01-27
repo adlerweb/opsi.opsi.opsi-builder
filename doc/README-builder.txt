@@ -26,6 +26,10 @@
 # May you will add opsi-builder.sh to your PATH
   export PATH=$HOME/work/devtools/bin:$PATH
 
+# You will find additional information inside the sample configuration
+# Please read the file carefully
+      <opsi-builder-home>/sample/*
+
 # Start building
   opsi-builder.sh <path-to-the-project>
 
