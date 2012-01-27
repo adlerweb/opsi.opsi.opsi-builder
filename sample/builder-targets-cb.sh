@@ -3,14 +3,20 @@
 # 
 # You can overwrite target functions like
 #   config, prepare, retrieve, create, package, publish, commit, cleanup
-# and  define callback functions 
+# 
+# You can define callback functions like
 #   cb_package_makeproductfile
+#
+# You can use every variable defined in any configuration file or by
+# the defined builder script itself. Also, calling the predefined
+# targets builder_<targetname> is possible.
 #
 ##############################################################################
 
 #function config() {
-#    echo "Config" 
+#    echo "Config - doing some commands before calling the builder_config" 
 #    builder_config
+#    echo "Config - doing some commands after calling the builder_config" 
 #}
 
 #function prepare() { 
