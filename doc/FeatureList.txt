@@ -1,0 +1,18 @@
+- Fri 27.01.2012 09:44, dschwager
+  - Add maven for handling all archives 
+    opsi-archive: Storing all generated opsi-packets		($OPSI_REPOS_BASE_DIR)
+      dist-private: archive for all not public installer/MSI files  ($DIST_PRIVATE_REPOS)
+
+    Advantage: maven supports all kind of fileaccess (http, sftp, webdatev, smb, ...)
+    and we have to to code the up/downloading from the artifacts.
+
+  - Add integration to jenkins (An extendable open source continuous integration server)
+    http://jenkins-ci.org/ (Old: http://hudson-ci.org/, http://java.net/projects/hudson/)
+ 	- a opsi-hudson.sh will be called as a meta builder. This will trigger the normale opsi-builder.sh
+
+  - autoamtially tagging GIT tree, if a new "release" (OPSI_STATUS==release) was created
+    - opsi-builder.cfg:
+         OPSI_STATUS=[release|beta|integration]  - tells about the build state
+	 
+    should be done. 
+  
