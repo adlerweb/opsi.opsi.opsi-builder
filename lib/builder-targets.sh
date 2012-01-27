@@ -161,8 +161,11 @@ builder_package() {
     echo >>$var_file
 
     # add the new vaiables to all *.ins winst files 
-    for ins_file in `find ${PRODUCT_DIR}/CLIENT_DATA -type f -name "*.ins"` ; do
-	cat $var_file $ins_file >${inst_dir}/CLIENT_DATA/`basename $ins_file`
+    for inst_file in `find ${inst_dir}/CLIENT_DATA -type f -name "*.ins"` ; do
+	sed -i -e "/@@BUILDER_VARIABLES@@/ { 
+                    r "$var_file"
+                    d 
+                  }" $inst_file
     done
 
     # replace variables from OPSI control
