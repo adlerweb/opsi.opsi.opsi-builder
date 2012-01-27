@@ -1,3 +1,10 @@
+- Fri 27.01.2012 11:17, dschwager
+  Inject other variables to *.ins scripte:
+	 VENDOR="itwatch.de"
+	 PN="itwatch"
+	 VERSION="4.10.19"
+	 RELEASE="3"
+	 
 - Fri 27.01.2012 09:44, dschwager
   - Add maven for handling all archives 
     opsi-archive: Storing all generated opsi-packets		($OPSI_REPOS_BASE_DIR)
