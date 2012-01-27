@@ -19,11 +19,11 @@ builder_config() {
     . $PRODUCT_DIR/builder-product.cfg 
     
     # set default build configuration and source the user dependent file
-    . $BASEDIR/conf/build-default.cfg
+    . $BASEDIR/conf/opsi-builder.cfg
 
     #  Source local build configuration (must be done AFTER sourcing the release.cfg)
-    test -f $HOME/.builder.cfg && . $HOME/.builder.cfg && echo "Loaded builder configuration: $HOME/.builder.cfg"
-    test -f "$BUILD_LOCAL_CFG"  && . $BUILD_LOCAL_CFG &&  echo "Loaded builder configuration: $BUILD_LOCAL_CFG"
+    test -f $HOME/.opsi-builder.cfg && . $HOME/.opsi-builder.cfg && echo "Loaded builder configuration: $HOME/.opsi-builder.cfg"
+    test -f "$OPSI_BUILDER"  && . $OPSI_BUILDER &&  echo "Loaded builder configuration: $OPSI_BUILDER"
     
     # Check variables
     if [ -z ${OPSI_REPOS_BASE_DIR} ] || [ ! -d ${OPSI_REPOS_BASE_DIR} ] ; then
@@ -195,7 +195,7 @@ builder_package() {
 
     # rename opsi package file
     if [ "${PN}_${VERSION}-${RELEASE}.opsi" != "$OPSI_REPOS_FILE_PATTERN" ]; then
-	mv ${PN}_${VERSION}-${RELEASE}.opsi $OPSI_REPOS_FILE_PATTERN
+	mv ${output_dir}/${PN}_${VERSION}-${RELEASE}.opsi ${output_dir}/$OPSI_REPOS_FILE_PATTERN
     fi
 
 }
@@ -207,8 +207,11 @@ builder_publish() {
 
     # Upload file to repository
     mkdir -p ${OPSI_REPOS_PRODUCT_DIR}
-    cp  $output_dir/$OPSI_REPOS_FILE_PATTERN   ${OPSI_REPOS_PRODUCT_DIR}/${OPSI_REPOS_FILE_PATTERN}
-    builder_check_error "Can't upload file $output_dir/$OPSI_REPOS_FILE_PATTERN to  ${OPSI_REPOS_PRODUCT_DIR}/${OPSI_REPOS_FILE_PATTERN}"
+    local src=$output_dir/${OPSI_REPOS_FILE_PATTERN}
+    local dst=${OPSI_REPOS_PRODUCT_DIR}/${OPSI_REPOS_FILE_PATTERN}
+    echo "Publishing opsi-package to $dst"
+    cp  $src $dst
+    builder_check_error "Can't upload file $dst --> $dst"
 
 }
 
