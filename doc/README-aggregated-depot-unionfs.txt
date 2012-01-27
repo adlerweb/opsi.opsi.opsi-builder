@@ -1,17 +1,20 @@
 --------------------------------------------------------------------------------------------------
 
-** Our objective: Prevent mixing up custom related files with opsi packages
-   If you install opsi packages on the OPSI-Server, they will be
+** Our objective: Prevent mixing up custom related files with OPSI packages
+
+   If you install OPSI packages on the OPSI-Server, they will be
    extracted to /opt/pcbin/install. For some packages it's necessary to place 
    customized files inside this area (e.g. /opt/pcbin/install/<program>/custom/myconfig.cfg)
-   In this situation, opsi-packages are mixed up with private/individual files. This
-   could be a problem for maintenance, update or prtivacy reason.
+   In this situation, OPSI-packages are mixed up with private/individual files. This
+   could be a problem for maintenance, update or privacy reason.
 
 ** Solution: Separation of custom files
-   To separate the opsi-packages from the custom files, we setup a unionfs filesystem and 
-   publish two directories as one, readonly aggregation filesystem.
+
+   To separate the OPSI-packages from the custom files, we setup a unionfs filesystem and 
+   publish two directories as one, read-only aggregation filesystem.
 
 ---------------------------------------------------------------------------------------------------
+
 
 ** Installation of unionfs-fuse on a centos system
 
@@ -33,7 +36,7 @@
      modprobe fuse
 
 
-** Configure the aggreeagated opsi depot
+** Configure the aggreeagated OPSI depot
    # Create a depot directory containing the customized files. 
    mkdir /srv/opsi/depot.custom
 
@@ -85,5 +88,14 @@
 	   invalid users = root
 
    service smb restart
+
+
+   # Testing using a OPSI client PC
+   On a windows client PC. connect to the OPSI depot networkshare
+   \\<opsi-server\opsi_depot and check the directory swaudit\custom. You
+   should have read-only access to the test file MY_INDIVIDUAL_FILE.txt
+   located in the individual/private directory on the OPSI-server.
+
+
 
 --------------------------------------------------------------------------------------------------
