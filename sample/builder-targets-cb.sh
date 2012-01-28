@@ -13,6 +13,9 @@
 # the defined builder script itself. Also, calling the predefined
 # targets builder_<targetname> is possible.
 #
+# Abstract:
+#  target order: config, prepare, retrieve, create, package, publish, commit, cleanup
+#  callbacks: cb_package_makeproductfile
 #
 ##############################################################################
 
