@@ -15,7 +15,7 @@
 #
 # Abstract:
 #  target order: config, prepare, retrieve, create, package, publish, commit, cleanup
-#  callbacks: cb_package_makeproductfile
+#  callbacks: <none>
 #
 ##############################################################################
 
@@ -43,10 +43,6 @@ function create() {
 function package() { 
     echo "Package" 
     builder_package
-}
-
-function cb_package_makeproductfile() {
-    echo "May add/replace files to the files to $inst_dir"
 }
 
 function publish() {

@@ -57,8 +57,8 @@ builder_config() {
 builder_prepare() {
 
     # Check if the package is still build
-    if  [ -z "$OPSI_REPOS_FORCE_UPLOAD" ] && [ -f ${OPSI_REPOS_PRODUCT_DIR}/${OPSI_REPOS_FILE_PATTERN} ]  ; then
-	echo "ERROR:  package ${OPSI_REPOS_PRODUCT_DIR}/${OPSI_REPOS_FILE_PATTERN} already generated"
+    if  [ -z "$OPSI_REPOS_FORCE_UPLOAD" ] && [ -d ${OPSI_REPOS_PRODUCT_DIR} ]  ; then
+	echo "Directory ${OPSI_REPOS_PRODUCT_DIR} already exists."
 	exit 1
     fi
 
@@ -134,34 +134,29 @@ builder_retrieve() {
 ####################
 builder_create() {
 
+    # prepare
+    INST_DIR=$OUTPUT_DIR/$PN
+    mkdir $INST_DIR
+
+    # Copy files and convert text files to dos format
+    cp -Rv ${PRODUCT_DIR}/OPSI         $INST_DIR
+    cp -Rv ${PRODUCT_DIR}/CLIENT_DATA  $INST_DIR
+    find $INST_DIR/CLIENT_DATA -type f | xargs -n1 -iREP sh -c 'file -i $0 | grep "text/plain" && dos2unix $0' REP
+
     # converting icon file
     local iconfile_src=${DIST_FILE[$ICON_FILE_INDEX]}
     ICONFILE=$OUTPUT_DIR/$PN.png
     convert -colorspace rgb $iconfile_src -transparent white -background transparent -resize 160x160 \
 	-size 160x160 xc:transparent +swap -gravity center -composite $ICONFILE
     builder_check_error "converting image"
+    cp -a $ICONFILE  $INST_DIR/CLIENT_DATA
 
-}
-
-#####################
-# build opsi package
-#####################
-builder_package() {
-
-    # prepare
-    local inst_dir=$OUTPUT_DIR/$PN
-    mkdir $inst_dir
-
-    # Copy files and convert text files to dos format
-    cp -Rv ${PRODUCT_DIR}/OPSI         $inst_dir
-    cp -Rv ${PRODUCT_DIR}/CLIENT_DATA  $inst_dir
-    find $inst_dir/CLIENT_DATA -type f | xargs -n1 -iREP sh -c 'file -i $0 | grep "text/plain" && dos2unix $0' REP
     
     # copy binaries
     for (( i = 0 ; i < ${#SOURCE[@]} ; i++ )) ; do
 	distfile=${DIST_FILE[$i]}
-	mkdir -p $inst_dir/CLIENT_DATA/${ARCH[$i]}
-	cp ${DIST_FILE[$i]}   $inst_dir/CLIENT_DATA/${ARCH[$i]}
+	mkdir -p $INST_DIR/CLIENT_DATA/${ARCH[$i]}
+	cp ${DIST_FILE[$i]}   $INST_DIR/CLIENT_DATA/${ARCH[$i]}
     done
 
     # create variables 
@@ -181,14 +176,13 @@ builder_package() {
     done
 
     # copy image and create variable
-    cp -a $ICONFILE  $inst_dir/CLIENT_DATA
     echo "DefVar \$IconFile\$"  >>$var_file
     echo "Set    \$IconFile\$ = \"%ScriptPath%\\`basename $ICONFILE`\"" >>$var_file
 
     echo >>$var_file
 
     # add the new vaiables to all *.ins winst files 
-    for inst_file in `find ${inst_dir}/CLIENT_DATA -type f -name "*.ins"` ; do
+    for inst_file in `find ${INST_DIR}/CLIENT_DATA -type f -name "*.ins"` ; do
 	sed -i -e "/@@BUILDER_VARIABLES@@/ { 
                     r "$var_file"
                     d 
@@ -197,7 +191,7 @@ builder_package() {
 
     # replace variables from OPSI control
     local release_new=${CREATOR_TAG}${RELEASE}
-    sed -e "s!VERSION!$VERSION!g" -e "s!RELEASE!${release_new}!g" -e "s!PRIORITY!$PRIORITY!g" -e "s!ADVICE!$ADVICE!g" ${PRODUCT_DIR}/OPSI/control  >$inst_dir/OPSI/control
+    sed -e "s!VERSION!$VERSION!g" -e "s!RELEASE!${release_new}!g" -e "s!PRIORITY!$PRIORITY!g" -e "s!ADVICE!$ADVICE!g" ${PRODUCT_DIR}/OPSI/control  >$INST_DIR/OPSI/control
       
     # Create changelog based on git - if available
     if [ -d "${PRODUCT_DIR}/.git" ] ; then
@@ -206,26 +200,9 @@ builder_package() {
 	    awk '/^Author/ {sub(/\\$/,""); getline t; print $0 t; next}; 1' | \
 	    sed -e 's/^Author: //g' | \
 	    sed -e 's/>Date:   \([0-9]*-[0-9]*-[0-9]*\)/>\t\1/g' | \
-	    sed -e 's/^\(.*\) \(\)\t\(.*\)/\3    \1    \2/g' > $inst_dir/OPSI/changelog.txt
+	    sed -e 's/^\(.*\) \(\)\t\(.*\)/\3    \1    \2/g' > $INST_DIR/OPSI/changelog.txt
     else
 	echo "No git repository present."
-    fi
-
-    # Callback
-    call_entry_point  result cb_package_makeproductfile
-
-    # building package
-    local opsi_file=${PN}_${VERSION}-${release_new}.opsi
-    pushd ${OUTPUT_DIR}
-    rm -f ${opsi_file} $OPSI_REPOS_FILE_PATTERN
-    opsi-makeproductfile -v $inst_dir
-    builder_check_error "Building OPSI-package"
-    popd
-
-    # rename opsi package file
-    if [ "${opsi_file}" != "$OPSI_REPOS_FILE_PATTERN" ]; then
-	mv ${OUTPUT_DIR}/${opsi_file} ${OUTPUT_DIR}/$OPSI_REPOS_FILE_PATTERN
-	builder_check_error "can't move file  ${OUTPUT_DIR}/${opsi_file} ${OUTPUT_DIR}/$OPSI_REPOS_FILE_PATTERN"
     fi
 
 }
@@ -233,14 +210,43 @@ builder_package() {
 #####################
 # build opsi package
 #####################
+builder_package() {
+
+    # creating package
+    local release_new=${CREATOR_TAG}${RELEASE}
+    local opsi_file=${PN}_${VERSION}-${release_new}.opsi
+    pushd ${OUTPUT_DIR}
+    rm -f ${opsi_file} ${OPSI_REPOS_FILE_PATTERN}.opsi
+    opsi-makeproductfile -v $INST_DIR
+    builder_check_error "Building OPSI-package"
+    popd
+
+    # rename opsi package file
+    if [ "${opsi_file}" != "${OPSI_REPOS_FILE_PATTERN}.opsi" ]; then
+	mv ${OUTPUT_DIR}/${opsi_file} ${OUTPUT_DIR}/${OPSI_REPOS_FILE_PATTERN}.opsi
+	builder_check_error "can't move file  ${OUTPUT_DIR}/${opsi_file} ${OUTPUT_DIR}/${OPSI_REPOS_FILE_PATTERN}.opsi"
+    fi
+
+    # create source package
+    zip -r ${OUTPUT_DIR}/${OPSI_REPOS_FILE_PATTERN}.zip $INST_DIR
+
+
+}
+
+#####################
+# publish
+#####################
 builder_publish() {
 
     # Upload file to repository
     mkdir -p ${OPSI_REPOS_PRODUCT_DIR}
-    local src=$OUTPUT_DIR/${OPSI_REPOS_FILE_PATTERN}
+
+    echo "Publishing opsi-package to ${OPSI_REPOS_PRODUCT_DIR}"
+    local src=${OUTPUT_DIR}/${OPSI_REPOS_FILE_PATTERN}
     local dst=${OPSI_REPOS_PRODUCT_DIR}/${OPSI_REPOS_FILE_PATTERN}
-    echo "Publishing opsi-package to $dst"
-    cp  $src $dst
+
+    # copy files
+    cp  ${src}.opsi  ${dst}.opsi
     builder_check_error "Can't upload file $dst --> $dst"
 
 }
