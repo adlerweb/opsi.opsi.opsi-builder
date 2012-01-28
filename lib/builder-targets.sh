@@ -9,6 +9,7 @@
 # Read config
 ####################
 builder_config() {
+
     # Check temp dir
     test -d ${TMP_DIR}
     builder_check_error "temp directory not available: $TMP_DIR"
@@ -18,6 +19,13 @@ builder_config() {
     builder_check_error "can't read release configuration: ${PRODUCT_DIR}/product.cfg"
     . $PRODUCT_DIR/builder-product.cfg 
     
+    # change some variable dynamically
+    # - autogenerate release number, if we are in status "integration"
+    if [ "$STATUS" = "integration" ] ; then
+	# OPSI/control:RELEASE is limited to max 16 chars - take care in regards to the CREATOR_TAG
+	RELEASE="`date +%Y%m%d%H%M`"
+    fi
+
     # set default build configuration and source the user dependent file
     . $BASEDIR/conf/opsi-builder.cfg
 
@@ -30,7 +38,7 @@ builder_config() {
 	echo "configuration error: OPSI_REPOS_BASE_DIR directory does not exist: $OPSI_REPOS_BASE_DIR"
 	exit 2
     fi
-    
+
 }
 
 #####################
@@ -48,7 +56,7 @@ builder_prepare() {
     echo "Distribution directory: $DIST_CACHE_DIR"
 
     # setup work directory
-    output_dir=$(mktemp -d $TMP_DIR/opsi-builder.XXXXXXXXXX) || { echo "Failed to create temp dir"; exit 1; }
+    OUTPUT_DIR=$(mktemp -d $TMP_DIR/opsi-builder.XXXXXXXXXX) || { echo "Failed to create temp dir"; exit 1; }
 
 }
 
@@ -60,10 +68,10 @@ builder_prepare() {
 builder_retrieve() {
 
     for (( i = 0 ; i < ${#SOURCE[@]} ; i++ )) ; do
-	basename=${FILE[$i]}
-	urls=${SOURCE[$i]}
-	arch=${ARCH[$i]}
-	downloaded=0
+	local basename=${FILE[$i]}
+	local urls=${SOURCE[$i]}
+	local arch=${ARCH[$i]}
+	local downloaded=0
 	
         # Add private repos to the urls
 	if [ ! -z ${DIST_PRIVATE_REPOS} ]; then
@@ -117,10 +125,10 @@ builder_retrieve() {
 builder_create() {
 
     # converting icon file
-    iconfile=${DIST_FILE[$ICON_FILE_INDEX]}
-    echo iconfile=$iconfile
-    convert -colorspace rgb $iconfile -transparent white -background transparent -resize 160x160 \
-	-size 160x160 xc:transparent +swap -gravity center -composite $output_dir/$PN.png
+    local iconfile_src=${DIST_FILE[$ICON_FILE_INDEX]}
+    ICONFILE=$OUTPUT_DIR/$PN.png
+    convert -colorspace rgb $iconfile_src -transparent white -background transparent -resize 160x160 \
+	-size 160x160 xc:transparent +swap -gravity center -composite $ICONFILE
     builder_check_error "converting image"
 
 }
@@ -131,17 +139,14 @@ builder_create() {
 builder_package() {
 
     # prepare
-    inst_dir=$output_dir/$PN
+    local inst_dir=$OUTPUT_DIR/$PN
     mkdir $inst_dir
 
     # Copy files and convert text files to dos format
     cp -Rv ${PRODUCT_DIR}/OPSI         $inst_dir
     cp -Rv ${PRODUCT_DIR}/CLIENT_DATA  $inst_dir
     find $inst_dir/CLIENT_DATA -type f | xargs -n1 -iREP sh -c 'file -i $0 | grep "text/plain" && dos2unix $0' REP
-
-    # copy image
-    cp -a $output_dir/$PN.png  $inst_dir/CLIENT_DATA
-
+    
     # copy binaries
     for (( i = 0 ; i < ${#SOURCE[@]} ; i++ )) ; do
 	distfile=${DIST_FILE[$i]}
@@ -150,14 +155,26 @@ builder_package() {
     done
 
     # create variables 
-    var_file=$output_dir/variable.ins
+    local var_file=$OUTPUT_DIR/variable.ins
     echo -n >$var_file
     for (( i = 0 ; i < ${#SOURCE[@]} ; i++ )) ; do
 	if [ -z ${WINST[$i]} ] ; then continue ; fi
 	if [ ! -z "${ARCH[$i]}" ] ; then arch_str="${ARCH[$i]}\\" ; fi
 	echo "DefVar \$${WINST[$i]}\$" >>$var_file
-	echo "Set \$${WINST[$i]}\$ = \"%ScriptPath%\\$arch_str${FILE[$i]}\""  >>$var_file
+	echo "Set    \$${WINST[$i]}\$ = \"%ScriptPath%\\$arch_str${FILE[$i]}\""  >>$var_file
     done
+
+    # publish some other variables
+    for var in VENDOR PN VERSION RELEASE PRIORITY ADVICE TYPE CREATOR_TAG CREATOR_NAME CREATOR_EMAIL ; do 
+        echo "DefVar \$${var}\$"            >>$var_file
+        echo "Set    \$${var}\$ = \"${!var}\""  >>$var_file
+    done
+
+    # copy image and create variable
+    cp -a $ICONFILE  $inst_dir/CLIENT_DATA
+    echo "DefVar \$IconFile\$"  >>$var_file
+    echo "Set    \$IconFile\$ = \"%ScriptPath%\\`basename $ICONFILE`\"" >>$var_file
+
     echo >>$var_file
 
     # add the new vaiables to all *.ins winst files 
@@ -169,7 +186,8 @@ builder_package() {
     done
 
     # replace variables from OPSI control
-    sed -e "s!VERSION!$VERSION!g" -e "s!RELEASE!$RELEASE!g" -e "s!PRIORITY!$PRIORITY!g" -e "s!ADVICE!$ADVICE!g" ${PRODUCT_DIR}/OPSI/control  >$inst_dir/OPSI/control
+    local release_new=${CREATOR_TAG}${RELEASE}
+    sed -e "s!VERSION!$VERSION!g" -e "s!RELEASE!${release_new}!g" -e "s!PRIORITY!$PRIORITY!g" -e "s!ADVICE!$ADVICE!g" ${PRODUCT_DIR}/OPSI/control  >$inst_dir/OPSI/control
       
     # Create changelog based on git - if available
     if [ -d "${PRODUCT_DIR}/.git" ] ; then
@@ -187,15 +205,17 @@ builder_package() {
     call_entry_point  result cb_package_makeproductfile
 
     # building package
-    pushd ${output_dir}
-    rm -f ${PN}_${VERSION}-${RELEASE}.opsi $OPSI_REPOS_FILE_PATTERN
+    local opsi_file=${PN}_${VERSION}-${release_new}.opsi
+    pushd ${OUTPUT_DIR}
+    rm -f ${opsi_file} $OPSI_REPOS_FILE_PATTERN
     opsi-makeproductfile -v $inst_dir
     builder_check_error "Building OPSI-package"
     popd
 
     # rename opsi package file
-    if [ "${PN}_${VERSION}-${RELEASE}.opsi" != "$OPSI_REPOS_FILE_PATTERN" ]; then
-	mv ${output_dir}/${PN}_${VERSION}-${RELEASE}.opsi ${output_dir}/$OPSI_REPOS_FILE_PATTERN
+    if [ "${opsi_file}" != "$OPSI_REPOS_FILE_PATTERN" ]; then
+	mv ${OUTPUT_DIR}/${opsi_file} ${OUTPUT_DIR}/$OPSI_REPOS_FILE_PATTERN
+	builder_check_error "can't move file  ${OUTPUT_DIR}/${opsi_file} ${OUTPUT_DIR}/$OPSI_REPOS_FILE_PATTERN"
     fi
 
 }
@@ -207,7 +227,7 @@ builder_publish() {
 
     # Upload file to repository
     mkdir -p ${OPSI_REPOS_PRODUCT_DIR}
-    local src=$output_dir/${OPSI_REPOS_FILE_PATTERN}
+    local src=$OUTPUT_DIR/${OPSI_REPOS_FILE_PATTERN}
     local dst=${OPSI_REPOS_PRODUCT_DIR}/${OPSI_REPOS_FILE_PATTERN}
     echo "Publishing opsi-package to $dst"
     cp  $src $dst
@@ -231,7 +251,7 @@ builder_commit() {
 #####################
 builder_cleanup() {
     # Paranoia 
-    if [ -d "$output_dir" ] && [[ $output_dir == $TMP_DIR/opsi-builder.* ]] ; then
-	rm -rf $output_dir
+    if [ -d "$OUTPUT_DIR" ] && [[ $OUTPUT_DIR == $TMP_DIR/opsi-builder.* ]] ; then
+	rm -rf $OUTPUT_DIR
     fi
 }
