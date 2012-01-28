@@ -217,7 +217,7 @@ builder_package() {
     local opsi_file=${PN}_${VERSION}-${release_new}.opsi
     pushd ${OUTPUT_DIR}
     rm -f ${opsi_file} ${OPSI_REPOS_FILE_PATTERN}.opsi
-    opsi-makeproductfile -v $INST_DIR
+    LANG="C" opsi-makeproductfile -v $INST_DIR
     builder_check_error "Building OPSI-package"
     popd
 
