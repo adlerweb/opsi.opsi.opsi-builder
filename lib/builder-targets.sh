@@ -14,32 +14,41 @@ builder_config() {
     test -d ${TMP_DIR}
     builder_check_error "temp directory not available: $TMP_DIR"
     
-    # Source product release configuration
+    # project dependent configuration
     local config=${PRODUCT_DIR}/builder-product.cfg
     test -f ${config} || builder_check_error "can't read product config: ${config}"
     . ${config} 
     
-    # change some variable dynamically
-    # - autogenerate release number, if we are in status "integration"
+    # set default build configuration and source the user dependent file
+    local config=$BASEDIR/conf/opsi-builder.cfg
+    . ${config}
+
+    #  Source local build configuration (must be done AFTER sourcing the builder-product.cfg.cfg)
+    if [ -f "$OPSI_BUILDER" ] ; then
+	config=$OPSI_BUILDER
+    else	
+	test -f $HOME/.opsi-builder.cfg && config=$HOME/.opsi-builder.cfg
+    fi
+
+    # Read ONLY the STATUS variable from the build configuration file
+    eval "`grep -E "^STATUS=" $config`"
+
+    # change some variable from the builder-product.cfg dynamically:
+    # autogenerate release number, if we are in status "integration"
     if [ "$STATUS" = "integration" ] ; then
 	# OPSI/control:RELEASE is limited to max 16 chars - take care in regards to the CREATOR_TAG
 	RELEASE="`date +%Y%m%d%H%M`"
     fi
 
-    # set default build configuration and source the user dependent file
-    . $BASEDIR/conf/opsi-builder.cfg
+    # Read configurationfile
+    . ${config}
+    echo "Loaded builder configuration: $config"
 
-    #  Source local build configuration (must be done AFTER sourcing the release.cfg)
-    config=$HOME/.opsi-builder.cfg
-    test -f ${config} && . ${config} && echo "Loaded builder configuration: ${config}"
-    test -f "$OPSI_BUILDER"  && . $OPSI_BUILDER &&  echo "Loaded builder configuration: $OPSI_BUILDER"
-    
     # Check variables
     if [ -z ${OPSI_REPOS_BASE_DIR} ] || [ ! -d ${OPSI_REPOS_BASE_DIR} ] ; then
 	echo "configuration error: OPSI_REPOS_BASE_DIR directory does not exist: $OPSI_REPOS_BASE_DIR"
 	exit 2
     fi
-
 }
 
 #####################
