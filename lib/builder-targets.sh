@@ -14,15 +14,16 @@ builder_config() {
     builder_check_error "temp directory not available: $TMP_DIR"
     
     # Source product release configuration
-    test -f ${PRODUCT_DIR}/builder-product.cfg
-    builder_check_error "can't read release configuration: ${PRODUCT_DIR}/product.cfg"
-    . $PRODUCT_DIR/builder-product.cfg 
+    local config=${PRODUCT_DIR}/builder-product.cfg
+    test -f ${config} || builder_check_error "can't read product config: ${config}"
+    . ${config} 
     
     # set default build configuration and source the user dependent file
     . $BASEDIR/conf/opsi-builder.cfg
 
     #  Source local build configuration (must be done AFTER sourcing the release.cfg)
-    test -f $HOME/.opsi-builder.cfg && . $HOME/.opsi-builder.cfg && echo "Loaded builder configuration: $HOME/.opsi-builder.cfg"
+    config=$HOME/.opsi-builder.cfg
+    test -f ${config} && . ${config} && echo "Loaded builder configuration: ${config}"
     test -f "$OPSI_BUILDER"  && . $OPSI_BUILDER &&  echo "Loaded builder configuration: $OPSI_BUILDER"
     
     # Check variables
