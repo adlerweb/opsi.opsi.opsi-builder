@@ -188,8 +188,8 @@ builder_create() {
 
     
     # copy binaries
-    distfile=${DIST_FILE[$i]}
     for (( i = 0 ; i < ${#SOURCE[@]} ; i++ )) ; do
+	distfile=${DIST_FILE[$i]}
 	if [ ! -z "${INSTALL[$i]}" ] ; then
 	    mkdir -p $INST_DIR/CLIENT_DATA/${ARCH[$i]}/${EXTRACTTO[$i]}
 	    extract_file ${DIST_FILE[$i]} $INST_DIR/CLIENT_DATA/${ARCH[$i]}/${EXTRACTTO[$i]}
