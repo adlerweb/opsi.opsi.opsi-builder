@@ -77,3 +77,58 @@ builder_check_error() {
     fi
 }
 
+log_debug() {
+    local str=$1
+
+    if [ "$DEBUG_LEVEL" = "debug" ] ||  [ "$DEBUG_LEVEL" = "info" ]  ; then
+	echo $str
+    fi
+}
+
+###################
+# Convert image
+###################
+convert_image() {
+    local src=$1
+    local dst=$2
+
+    local hight=`identify -format "%h" $src`
+    local wight=`identify -format "%w" $src`
+    identify -format "%wx%h" $src
+
+    if [ $wight -lt $hight ] ; then
+	# Its higher so force x160 and let imagemagic decide the right wight
+	# then add transparency to the rest of the image to fit 160x160
+	log_debug "Icon Wight: $wight < Hight: $hight"
+	convert $src -transparent white -background transparent -resize x160 \
+	    -size 160x160 xc:transparent +swap -gravity center -composite $dst
+	builder_check_error "converting image"
+    elif [ $wight -gt $hight ] ; then
+	# Its wider so force 160x and let imagemagic decide the right hight
+	# then add transparency to the rest of the image to fit 160x160
+	log_debug "Icon Wight: $wight > Hight: $hight"
+	convert $src -transparent white -background transparent -resize 160x \
+	    -size 160x160 xc:transparent +swap -gravity center -composite $dst
+	builder_check_error "converting image"
+    elif [ $wight -eq $hight ] ; then
+	# Its scare so force 160x160
+	log_debug "Icon Wight: $wight = Hight: $hight"
+	convert $src -transparent white -background transparent -resize 160x160 \
+	    -size 160x160 xc:transparent +swap -gravity center -composite $dst
+	builder_check_error "converting image"
+    else
+	# Imagemagic is unable to detect the aspect ratio so just force 160x160
+	# this could result in streched images
+	log_debug "Icon Wight: $wight  Hight: $hight"
+	convert $src -transparent white -background transparent -resize 160x160 \
+	    xc:transparent +swap -gravity center -composite $dst
+	builder_check_error "converting image"
+    fi
+
+    # New size
+    # identify -format "%wx%h" $dst
+    hight=`identify -format "%h" $dst`
+    wight=`identify -format "%w" $dst`
+    log_debug "Opsi Icon Wight: $wight  Hight: $hight"
+
+}

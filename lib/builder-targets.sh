@@ -148,44 +148,8 @@ builder_create() {
     # converting icon file
     local iconfile_src=${DIST_FILE[$ICON_FILE_INDEX]}
     ICONFILE=$OUTPUT_DIR/$PN.png
-    HIGHT=`identify -format "%h" $iconfile_src`
-    WIGHT=`identify -format "%w" $iconfile_src`
-    identify -format "%wx%h" $iconfile_src
-
-    if [ $WIGHT -lt $HIGHT ] ; then
-	# Its higher so force x160 and let imagemagic decide the right wight
-	# then add transparency to the rest of the image to fit 160x160
-	echo "Icon Wight: $WIGHT < Hight: $HIGHT"
-	convert $iconfile_src -transparent white -background transparent -resize x160 \
-	    -size 160x160 xc:transparent +swap -gravity center -composite $ICONFILE
-	builder_check_error "converting image"
-    elif [ $WIGHT -gt $HIGHT ] ; then
-	# Its wider so force 160x and let imagemagic decide the right hight
-	# then add transparency to the rest of the image to fit 160x160
-	echo "Icon Wight: $WIGHT > Hight: $HIGHT"
-	convert $iconfile_src -transparent white -background transparent -resize 160x \
-	    -size 160x160 xc:transparent +swap -gravity center -composite $ICONFILE
-	builder_check_error "converting image"
-    elif [ $WIGHT -eq $HIGHT ] ; then
-	# Its scare so force 160x160
-	echo "Icon Wight: $WIGHT = Hight: $HIGHT"
-	convert $iconfile_src -transparent white -background transparent -resize 160x160 \
-	    -size 160x160 xc:transparent +swap -gravity center -composite $ICONFILE
-	builder_check_error "converting image"
-    else
-	# Imagemagic is unable to detect the aspect ratio so just force 160x160
-	# this could result in streched images
-	#echo "Icon Wight: $WIGHT  Hight: $HIGHT"
-	convert $iconfile_src -transparent white -background transparent -resize 160x160 \
-	    xc:transparent +swap -gravity center -composite $ICONFILE
-	builder_check_error "converting image"
-    fi
-    identify -format "%wx%h" $ICONFILE
-    HIGHT=`identify -format "%h" $ICONFILE`
-    WIGHT=`identify -format "%w" $ICONFILE`
-    echo "Opsi Icon Wight: $WIGHT  Hight: $HIGHT"
+    convert_image $iconfile_src $ICONFILE
     cp -a $ICONFILE  $INST_DIR/CLIENT_DATA
-
     
     # copy binaries
     for (( i = 0 ; i < ${#SOURCE[@]} ; i++ )) ; do
