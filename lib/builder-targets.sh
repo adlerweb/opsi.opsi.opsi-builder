@@ -68,6 +68,10 @@ builder_prepare() {
     # setup work directory
     OUTPUT_DIR=$(mktemp -d $TMP_DIR/opsi-builder.XXXXXXXXXX) || { echo "Failed to create temp dir"; exit 1; }
 
+    # prepare
+    INST_DIR=$OUTPUT_DIR/$PN
+    mkdir $INST_DIR
+
 }
 
 
@@ -135,10 +139,6 @@ builder_retrieve() {
 # Create files
 ####################
 builder_create() {
-
-    # prepare
-    INST_DIR=$OUTPUT_DIR/$PN
-    mkdir $INST_DIR
 
     # Copy files and convert text files to dos format
     cp -Rv ${PRODUCT_DIR}/OPSI         $INST_DIR
