@@ -82,20 +82,22 @@ builder_retrieve() {
 	local urls=${SOURCE[$i]}
 	local arch=${ARCH[$i]}
 	local downloaded=0
-	
-        # Add private repos to the urls
+
+	# Add private repos to the urls
 	if [ ! -z ${DIST_PRIVATE_REPOS} ]; then
 	    urls="${DIST_PRIVATE_REPOS}/$basename;$urls"
 	fi
-	
-        # check existence of CRC file
-	if [ ! -e ${PRODUCT_DIR}/${basename}.sha1sum ] ; then
-	    echo "You need to create the checksums with: sha1sum ${DIST_CACHE_DIR}/${basename}  > ${PRODUCT_DIR}/${basename}.sha1sum"
-	    exit 1
+
+	# check existence of CRC file only in non devel mode
+	if [ ! -z "${DEVEL}" ] ; then
+	    if [ ! -e ${PRODUCT_DIR}/${basename}.sha1sum ] ; then
+		echo "You need to create the checksums with: sha1sum ${DIST_CACHE_DIR}/${basename}  > ${PRODUCT_DIR}/${basename}.sha1sum"
+		exit 1
+	    fi
 	fi
-	
+
 	echo "Downloading $basename"
-        # check downloading from the defined URLs
+	# check downloading from the defined URLs
 	for src in `echo  $urls | sed -e 's/;/\n/g'`  ; do
 	    if [ $downloaded == 1 ]; then continue; fi
 
@@ -141,22 +143,60 @@ builder_create() {
     # Copy files and convert text files to dos format
     cp -Rv ${PRODUCT_DIR}/OPSI         $INST_DIR
     cp -Rv ${PRODUCT_DIR}/CLIENT_DATA  $INST_DIR
-    find $INST_DIR/CLIENT_DATA -type f | xargs -n1 -iREP sh -c 'file -i $0 | grep "text/plain" && dos2unix $0' REP
+    find $INST_DIR/CLIENT_DATA -type f | xargs -n1 -iREP sh -c 'file -i $0 | grep "text/plain" && unix2dos $0' REP
 
     # converting icon file
     local iconfile_src=${DIST_FILE[$ICON_FILE_INDEX]}
     ICONFILE=$OUTPUT_DIR/$PN.png
-    convert -colorspace rgb $iconfile_src -transparent white -background transparent -resize 160x160 \
-	-size 160x160 xc:transparent +swap -gravity center -composite $ICONFILE
-    builder_check_error "converting image"
+    HIGHT=`identify -format "%h" $iconfile_src`
+    WIGHT=`identify -format "%w" $iconfile_src`
+    identify -format "%wx%h" $iconfile_src
+
+    if [ $WIGHT -lt $HIGHT ] ; then
+	# Its higher so force x160 and let imagemagic decide the right wight
+	# then add transparency to the rest of the image to fit 160x160
+	echo "Icon Wight: $WIGHT < Hight: $HIGHT"
+	convert $iconfile_src -transparent white -background transparent -resize x160 \
+	    -size 160x160 xc:transparent +swap -gravity center -composite $ICONFILE
+	builder_check_error "converting image"
+    elif [ $WIGHT -gt $HIGHT ] ; then
+	# Its wider so force 160x and let imagemagic decide the right hight
+	# then add transparency to the rest of the image to fit 160x160
+	echo "Icon Wight: $WIGHT > Hight: $HIGHT"
+	convert $iconfile_src -transparent white -background transparent -resize 160x \
+	    -size 160x160 xc:transparent +swap -gravity center -composite $ICONFILE
+	builder_check_error "converting image"
+    elif [ $WIGHT -eq $HIGHT ] ; then
+	# Its scare so force 160x160
+	echo "Icon Wight: $WIGHT = Hight: $HIGHT"
+	convert $iconfile_src -transparent white -background transparent -resize 160x160 \
+	    -size 160x160 xc:transparent +swap -gravity center -composite $ICONFILE
+	builder_check_error "converting image"
+    else
+	# Imagemagic is unable to detect the aspect ratio so just force 160x160
+	# this could result in streched images
+	#echo "Icon Wight: $WIGHT  Hight: $HIGHT"
+	convert $iconfile_src -transparent white -background transparent -resize 160x160 \
+	    xc:transparent +swap -gravity center -composite $ICONFILE
+	builder_check_error "converting image"
+    fi
+    identify -format "%wx%h" $ICONFILE
+    HIGHT=`identify -format "%h" $ICONFILE`
+    WIGHT=`identify -format "%w" $ICONFILE`
+    echo "Opsi Icon Wight: $WIGHT  Hight: $HIGHT"
     cp -a $ICONFILE  $INST_DIR/CLIENT_DATA
 
     
     # copy binaries
     for (( i = 0 ; i < ${#SOURCE[@]} ; i++ )) ; do
 	distfile=${DIST_FILE[$i]}
-	mkdir -p $INST_DIR/CLIENT_DATA/${ARCH[$i]}
-	cp ${DIST_FILE[$i]}   $INST_DIR/CLIENT_DATA/${ARCH[$i]}
+	if [ ! -z "${INSTALL[$i]}" ] ; then
+	    mkdir -p $INST_DIR/CLIENT_DATA/${ARCH[$i]}/${EXTRACTTO[$i]}
+	    extract_file ${DIST_FILE[$i]} $INST_DIR/CLIENT_DATA/${ARCH[$i]}/${EXTRACTTO[$i]}
+	else
+	    mkdir -p $INST_DIR/CLIENT_DATA/${ARCH[$i]}
+	    cp ${DIST_FILE[$i]}   $INST_DIR/CLIENT_DATA/${ARCH[$i]}
+	fi
     done
 
     # create variables 
@@ -165,8 +205,15 @@ builder_create() {
     for (( i = 0 ; i < ${#SOURCE[@]} ; i++ )) ; do
 	if [ -z ${WINST[$i]} ] ; then continue ; fi
 	if [ ! -z "${ARCH[$i]}" ] ; then arch_str="${ARCH[$i]}\\" ; fi
-	echo "DefVar \$${WINST[$i]}\$" >>$var_file
-	echo "Set    \$${WINST[$i]}\$ = \"%ScriptPath%\\$arch_str${FILE[$i]}\""  >>$var_file
+	if [ ! -z "${EXTRACTTO[$i]}" ] ; then extractto_str="${EXTRACTTO[$i]}\\" ; fi
+	if [ ! $i -eq $ICON_FILE_INDEX ] ; then
+	    echo "DefVar \$${WINST[$i]}\$" >>$var_file
+	    if [ ! -z "${INSTALL[$i]}" ] ; then
+		echo "Set    \$${WINST[$i]}\$ = \"%ScriptPath%\\$arch_str$extractto_str${INSTALL[$i]}\""  >>$var_file
+	    else
+		echo "Set    \$${WINST[$i]}\$ = \"%ScriptPath%\\$arch_str${FILE[$i]}\""  >>$var_file
+	    fi
+	fi
     done
 
     # publish some other variables
@@ -217,7 +264,7 @@ builder_package() {
     local opsi_file=${PN}_${VERSION}-${release_new}.opsi
     pushd ${OUTPUT_DIR}
     rm -f ${opsi_file} ${OPSI_REPOS_FILE_PATTERN}.opsi
-    opsi-makeproductfile -v $INST_DIR
+    LANG="C" opsi-makeproductfile -v $INST_DIR
     builder_check_error "Building OPSI-package"
     popd
 

@@ -24,6 +24,29 @@ function  retrieve_file() {
     fi  
 }
 
+#############################################
+# void extract_file (src, dst)
+#
+# Description: Extract a file
+# 
+# Parameter
+#  src: source file to be used
+#  dst: path to extract the file
+#
+#############################################
+function  extract_file() {
+    local src=$1
+    local dst=$2
+
+    if [ "${EXTRACTWITH}" = "7zip" ]; then
+	7z x -o$dst $src
+    elif [ "${EXTRACTWITH}" = "unzip" ]; then
+	unzip $src -d $dst
+    else
+	7z x -o$dst $src
+    fi  
+}
+
 
 #############################################
 # check if method is available and call it
