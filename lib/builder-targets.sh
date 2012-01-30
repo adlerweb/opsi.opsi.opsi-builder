@@ -16,7 +16,7 @@ builder_config() {
     
     # project dependent configuration
     local config=${PRODUCT_DIR}/builder-product.cfg
-    test -f ${config} || builder_check_error "can't read product config: ${config}"
+    test -f ${config} || builder_check_error "cannot read product config: ${config}"
     . ${config} 
     
     # set default build configuration and source the user dependent file
@@ -49,6 +49,11 @@ builder_config() {
 	echo "configuration error: OPSI_REPOS_BASE_DIR directory does not exist: $OPSI_REPOS_BASE_DIR"
 	exit 2
     fi
+
+    if [  "$TYPE" != "public" ] && [  "$TYPE" != "restrict" ]  ; then
+	fatal_error "unknown TYPE: $TYPE"
+    fi
+
 }
 
 #####################
@@ -81,10 +86,10 @@ builder_prepare() {
 ####################
 builder_retrieve() {
 
-    for (( i = 0 ; i < ${#SOURCE[@]} ; i++ )) ; do
-	local basename=${FILE[$i]}
-	local urls=${SOURCE[$i]}
-	local arch=${ARCH[$i]}
+    for (( i = 0 ; i < ${#DL_SOURCE[@]} ; i++ )) ; do
+	local basename=${DL_FILE[$i]}
+	local urls=${DL_SOURCE[$i]}
+	local arch=${DL_ARCH[$i]}
 	local downloaded=0
 
 	# Add private repos to the urls
@@ -102,19 +107,22 @@ builder_retrieve() {
 
 	echo "Downloading $basename"
 	# check downloading from the defined URLs
-	for src in `echo  $urls | sed -e 's/;/\n/g'`  ; do
+	for src in `echo  $urls | sed -e 's/[;,]/\n/g'`  ; do
 	    if [ $downloaded == 1 ]; then continue; fi
 
 	    echo "  Info: Downloding from $src"
+	    local downloader=${DL_DOWNLOADER[$i]}
+	    if [ -z $downloader ]; then downloader="wget" ; fi
+
 	    mkdir -p ${DIST_CACHE_DIR}/$arch
-	    DIST_FILE[$i]=${DIST_CACHE_DIR}/$arch/$basename
-	    retrieve_file $src  ${DIST_FILE[$i]}
+	    DL_DIST_FILE[$i]=${DIST_CACHE_DIR}/$arch/$basename
+	    retrieve_file $downloader $src  ${DL_DIST_FILE[$i]}
 
 	    if [ $? == 0 ] ; then 
 	        # testing the checksum of the downloaded files
-		SHA1SUM=`cat ${PRODUCT_DIR}/${basename}.sha1sum | cut -d " " -f1`
-		CHECKSUM=`sha1sum ${DIST_FILE[$i]} | cut -d " " -f1`
-		if [ "$CHECKSUM" == "$SHA1SUM" ] ; then 
+		local sha1sum_val=`cat ${PRODUCT_DIR}/${basename}.sha1sum | cut -d " " -f1`
+		local checksum_val=`sha1sum ${DL_DIST_FILE[$i]} | cut -d " " -f1`
+		if [ "$checksum_val" == "$sha1sum_val" ] ; then 
 		    downloaded=1
 		    echo "  Info: Downloaded successfully"
 		else
@@ -146,51 +154,24 @@ builder_create() {
     find $INST_DIR/CLIENT_DATA -type f | xargs -n1 -iREP sh -c 'file -i $0 | grep "text/plain" && unix2dos $0' REP
 
     # converting icon file
-    local iconfile_src=${DIST_FILE[$ICON_FILE_INDEX]}
+    local iconfile_src=${DL_DIST_FILE[$ICON_DL_INDEX]}
     ICONFILE=$OUTPUT_DIR/$PN.png
     convert_image $iconfile_src $ICONFILE
     cp -a $ICONFILE  $INST_DIR/CLIENT_DATA
     
     # copy binaries
-    for (( i = 0 ; i < ${#SOURCE[@]} ; i++ )) ; do
-	distfile=${DIST_FILE[$i]}
-	if [ ! -z "${INSTALL[$i]}" ] ; then
-	    mkdir -p $INST_DIR/CLIENT_DATA/${ARCH[$i]}/${EXTRACTTO[$i]}
-	    extract_file ${DIST_FILE[$i]} $INST_DIR/CLIENT_DATA/${ARCH[$i]}/${EXTRACTTO[$i]}
-	else
-	    mkdir -p $INST_DIR/CLIENT_DATA/${ARCH[$i]}
-	    cp ${DIST_FILE[$i]}   $INST_DIR/CLIENT_DATA/${ARCH[$i]}
-	fi
+    for (( i = 0 ; i < ${#DL_SOURCE[@]} ; i++ )) ; do
+	DL_EXTRACT_PATH[$i]=${INST_DIR}/CLIENT_DATA/${DL_ARCH[$i]}/${DL_EXTRACT_TO[$i]}
+	local format=${DL_EXTRACT_FORMAT[$i]}
+	if [ -z "$format" ] ; then format="cp"; fi
+
+	mkdir -p ${DL_EXTRACT_PATH[$i]}
+	process_file $format ${DL_DIST_FILE[$i]} ${DL_EXTRACT_PATH[$i]}
     done
 
-    # create variables 
-    local var_file=$OUTPUT_DIR/variable.ins
-    echo -n >$var_file
-    for (( i = 0 ; i < ${#SOURCE[@]} ; i++ )) ; do
-	if [ -z ${WINST[$i]} ] ; then continue ; fi
-	if [ ! -z "${ARCH[$i]}" ] ; then arch_str="${ARCH[$i]}\\" ; fi
-	if [ ! -z "${EXTRACTTO[$i]}" ] ; then extractto_str="${EXTRACTTO[$i]}\\" ; fi
-	if [ ! $i -eq $ICON_FILE_INDEX ] ; then
-	    echo "DefVar \$${WINST[$i]}\$" >>$var_file
-	    if [ ! -z "${INSTALL[$i]}" ] ; then
-		echo "Set    \$${WINST[$i]}\$ = \"%ScriptPath%\\$arch_str$extractto_str${INSTALL[$i]}\""  >>$var_file
-	    else
-		echo "Set    \$${WINST[$i]}\$ = \"%ScriptPath%\\$arch_str${FILE[$i]}\""  >>$var_file
-	    fi
-	fi
-    done
-
-    # publish some other variables
-    for var in VENDOR PN VERSION RELEASE PRIORITY ADVICE TYPE CREATOR_TAG CREATOR_NAME CREATOR_EMAIL ; do 
-        echo "DefVar \$${var}\$"            >>$var_file
-        echo "Set    \$${var}\$ = \"${!var}\""  >>$var_file
-    done
-
-    # copy image and create variable
-    echo "DefVar \$IconFile\$"  >>$var_file
-    echo "Set    \$IconFile\$ = \"%ScriptPath%\\`basename $ICONFILE`\"" >>$var_file
-
-    echo >>$var_file
+    # create winst variables 
+    local var_file=${OUTPUT_DIR}/variable.ins
+    create_winst_varfile  $var_file
 
     # add the new vaiables to all *.ins winst files 
     for inst_file in `find ${INST_DIR}/CLIENT_DATA -type f -name "*.ins"` ; do
@@ -200,7 +181,7 @@ builder_create() {
                   }" $inst_file
     done
 
-    # replace variables from OPSI control
+    # replace variables from file OPSI/control
     local release_new=${CREATOR_TAG}${RELEASE}
     sed -e "s!VERSION!$VERSION!g" -e "s!RELEASE!${release_new}!g" -e "s!PRIORITY!$PRIORITY!g" -e "s!ADVICE!$ADVICE!g" ${PRODUCT_DIR}/OPSI/control  >$INST_DIR/OPSI/control
       
@@ -226,6 +207,7 @@ builder_package() {
     # creating package
     local release_new=${CREATOR_TAG}${RELEASE}
     local opsi_file=${PN}_${VERSION}-${release_new}.opsi
+
     pushd ${OUTPUT_DIR}
     rm -f ${opsi_file} ${OPSI_REPOS_FILE_PATTERN}.opsi
     LANG="C" opsi-makeproductfile -v $INST_DIR
@@ -240,9 +222,8 @@ builder_package() {
 
     # create source package
     zip -r ${OUTPUT_DIR}/${OPSI_REPOS_FILE_PATTERN}.zip $INST_DIR
-
-
 }
+
 
 #####################
 # publish
@@ -268,7 +249,7 @@ builder_publish() {
 builder_commit() {
     if [ -d "${PRODUCT_DIR}/.git" ]; then
 	echo -n
-	# echo "builder_commit() not implemented yet."
+	log_debug "builder_commit() not implemented yet."
     fi
 }
 
