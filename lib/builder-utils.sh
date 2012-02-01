@@ -89,7 +89,7 @@ function  call_entry_point() {
 ###################
 fatal_error() {
     echo "FATAL: $1"
-    exit 0
+    exit 1
 }
 
 ###################

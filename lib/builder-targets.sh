@@ -96,13 +96,10 @@ builder_retrieve() {
 	if [ ! -z ${DIST_PRIVATE_REPOS} ]; then
 	    urls="${DIST_PRIVATE_REPOS}/$basename;$urls"
 	fi
-
+	
 	# check existence of CRC file only in non devel mode
-	if [ ! -z "${DEVEL}" ] ; then
-	    if [ ! -e ${PRODUCT_DIR}/${basename}.sha1sum ] ; then
-		echo "You need to create the checksums with: sha1sum ${DIST_CACHE_DIR}/${basename}  > ${PRODUCT_DIR}/${basename}.sha1sum"
-		exit 1
-	    fi
+	if [ ! -e "${PRODUCT_DIR}/${basename}.sha1sum" ] && [ "$CHECKSUM_AUTOCREATE" != "true" ] ; then
+	    fatal_error "You need to create the checksums with: sha1sum ${DIST_CACHE_DIR}/${basename}  > ${PRODUCT_DIR}/${basename}.sha1sum"
 	fi
 
 	echo "Downloading $basename"
@@ -110,6 +107,7 @@ builder_retrieve() {
 	for src in `echo  $urls | sed -e 's/[;,]/\n/g'`  ; do
 	    if [ $downloaded == 1 ]; then continue; fi
 
+	    # Download file
 	    echo "  Info: Downloding from $src"
 	    local downloader=${DL_DOWNLOADER[$i]}
 	    if [ -z $downloader ]; then downloader="wget" ; fi
@@ -118,19 +116,32 @@ builder_retrieve() {
 	    DL_DIST_FILE[$i]=${DIST_CACHE_DIR}/$arch/$basename
 	    retrieve_file $downloader $src  ${DL_DIST_FILE[$i]}
 
-	    if [ $? == 0 ] ; then 
+	    if [ $? != 0 ] ; then 
+		echo "  Warning: Failed to download file - try next URL"
+		continue;
+	    fi
+
+	    # Check sha1
+	    if  [ ! -e "${PRODUCT_DIR}/${basename}.sha1sum" ] && [ "$CHECKSUM_AUTOCREATE" == "true" ] ; then
+		sha1sum ${DL_DIST_FILE[$i]}  > ${PRODUCT_DIR}/${basename}.sha1sum
+		downloaded=1
+		echo "  WARNING: SHA1 checksum (${DL_DIST_FILE[$i]}.sha1sum) was created dynamically because auf CHECKSUM_AUTOCREATE=$CHECKSUM_AUTOCREATE"
+	    else
 	        # testing the checksum of the downloaded files
 		local sha1sum_val=`cat ${PRODUCT_DIR}/${basename}.sha1sum | cut -d " " -f1`
 		local checksum_val=`sha1sum ${DL_DIST_FILE[$i]} | cut -d " " -f1`
 		if [ "$checksum_val" == "$sha1sum_val" ] ; then 
 		    downloaded=1
-		    echo "  Info: Downloaded successfully"
-		else
-		    echo "  Error: The checksums do not match - try next URL"
 		fi	
-	    else
-		echo "  Warning: Failed to download file - try next URL"
 	    fi
+	    
+	    # Print result
+	    if [ "$downloaded" == "1" ] ; then 
+		echo "  Info: Downloaded successfully"
+	    else
+		echo "  Error: The checksums do not match - try next URL"
+	    fi	
+
 	done
 	echo
 
@@ -151,7 +162,7 @@ builder_create() {
     # Copy files and convert text files to dos format
     cp -Rv ${PRODUCT_DIR}/OPSI         $INST_DIR
     cp -Rv ${PRODUCT_DIR}/CLIENT_DATA  $INST_DIR
-    find $INST_DIR/CLIENT_DATA -type f | xargs -n1 -iREP sh -c 'file -i $0 | grep "text/plain" && unix2dos $0' REP
+    find $INST_DIR/CLIENT_DATA -type f | xargs -n1 -iREP sh -c 'file -i $0 | grep "text/plain" && unix2dos $0 ' REP >/dev/null
 
     # converting icon file
     local iconfile_src=${DL_DIST_FILE[$ICON_DL_INDEX]}
