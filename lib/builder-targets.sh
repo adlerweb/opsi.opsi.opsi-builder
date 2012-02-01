@@ -62,7 +62,7 @@ builder_config() {
 builder_prepare() {
 
     # Check if the package is still build
-    if  [ -z "$OPSI_REPOS_FORCE_UPLOAD" ] && [ -d ${OPSI_REPOS_PRODUCT_DIR} ]  ; then
+    if  [ -z "$OPSI_REPOS_FORCE_UPLOAD" ] && [ -f "${OPSI_REPOS_PRODUCT_DIR}/${OPSI_REPOS_FILE_PATTERN}.opsi" ]  ; then
 	echo "Directory ${OPSI_REPOS_PRODUCT_DIR} already exists."
 	exit 1
     fi
