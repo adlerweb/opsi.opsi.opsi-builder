@@ -31,13 +31,13 @@ builder_config() {
     fi
 
     # Read ONLY the STATUS variable from the build configuration file
-    eval "`grep -E "^STATUS=" $config`"
+    eval "`grep -E "^(STATUS|STATUS_INTEGRATION_RELEASE)=" $config`"
 
     # change some variable from the builder-product.cfg dynamically:
     # autogenerate release number, if we are in status "integration"
     if [ "$STATUS" = "integration" ] ; then
 	# OPSI/control:RELEASE is limited to max 16 chars - take care in regards to the CREATOR_TAG
-	RELEASE="`date +%Y%m%d%H%M`"
+	RELEASE="${STATUS_INTEGRATION_RELEASE}"
     fi
 
     # Read configurationfile
@@ -231,8 +231,9 @@ builder_package() {
 	builder_check_error "can't move file  ${OUTPUT_DIR}/${opsi_file} ${OUTPUT_DIR}/${OPSI_REPOS_FILE_PATTERN}.opsi"
     fi
 
-    # create source package
-    zip -r ${OUTPUT_DIR}/${OPSI_REPOS_FILE_PATTERN}.zip $INST_DIR
+    # create source- and binary package package
+    test "${OPSI_REPOS_UPLOAD_BIN}" = "true"    && zip -r ${OUTPUT_DIR}/${OPSI_REPOS_FILE_PATTERN}.zip $INST_DIR
+    test "${OPSI_REPOS_UPLOAD_SOURCE}" = "true" && zip -r ${OUTPUT_DIR}/${OPSI_REPOS_FILE_PATTERN}-src.zip ${PRODUCT_DIR} 
 }
 
 
@@ -249,8 +250,30 @@ builder_publish() {
     local dst=${OPSI_REPOS_PRODUCT_DIR}/${OPSI_REPOS_FILE_PATTERN}
 
     # copy files
-    cp  ${src}.opsi  ${dst}.opsi
-    builder_check_error "Can't upload file $dst --> $dst"
+    if [ "${OPSI_REPOS_UPLOAD_OPSI}" = "true" ] ; then
+	cp  ${src}.opsi  ${dst}.opsi
+	builder_check_error "Can't upload file $dst.opsi --> $dst.opsi"
+    fi
+
+    if [ "${OPSI_REPOS_UPLOAD_BIN}" = "true" ] ; then
+	cp  ${src}.zip   ${dst}.zip
+	builder_check_error "Can't upload file $dst.zip --> $dst.zip"
+    fi
+
+    if [ "${OPSI_REPOS_UPLOAD_SOURCE}" = "true" ] ; then
+	cp  ${src}-src.zip   ${dst}-src.zip
+	builder_check_error "Can't upload file ${dst}-src.zip --> ${dst}-src.zip"
+    fi
+
+    if [ "${OPSI_REPOS_UPLOAD_OPSI_ZSYNC}" = "true" ] ; then 
+	md5sum "${dst}.opsi" | sed 's/ .*//' > ${dst}.opsi.md5
+	builder_check_error "Can't create md5 file"
+	
+	zsyncmake -u ${OPSI_REPOS_FILE_PATTERN}.opsi -o "${dst}.opsi.zsync" "${dst}.opsi"
+	builder_check_error "Can't create zsync file"
+    fi
+
+
 
 }
 
