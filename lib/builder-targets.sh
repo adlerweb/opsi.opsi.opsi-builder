@@ -50,7 +50,7 @@ builder_config() {
 	exit 2
     fi
 
-    if [  "$TYPE" != "public" ] && [  "$TYPE" != "restrict" ]  ; then
+    if [  "$TYPE" != "public" ] && [  "$TYPE" != "restricted" ]  ; then
 	fatal_error "unknown TYPE: $TYPE"
     fi
 
