@@ -10,6 +10,12 @@
 ####################
 builder_config() {
 
+    # Define commands
+    CMD_7z="`which 7z`"       ; builder_check_error "No 7z installed"
+    CMD_unzip="`which unzip`"  ; builder_check_error "No unzip installed"
+    CMD_zip="`which zip`"      ; builder_check_error "No zip installed"
+
+
     # Check temp dir
     test -d ${TMP_DIR}
     builder_check_error "temp directory not available: $TMP_DIR"
@@ -232,8 +238,8 @@ builder_package() {
     fi
 
     # create source- and binary package package
-    test "${OPSI_REPOS_UPLOAD_BIN}" = "true"    && zip -r ${OUTPUT_DIR}/${OPSI_REPOS_FILE_PATTERN}.zip $INST_DIR
-    test "${OPSI_REPOS_UPLOAD_SOURCE}" = "true" && zip -r ${OUTPUT_DIR}/${OPSI_REPOS_FILE_PATTERN}-src.zip ${PRODUCT_DIR} 
+    test "${OPSI_REPOS_UPLOAD_BIN}" = "true"    && $CMD_zip -r ${OUTPUT_DIR}/${OPSI_REPOS_FILE_PATTERN}.zip $INST_DIR
+    test "${OPSI_REPOS_UPLOAD_SOURCE}" = "true" && $CMD_zip -r ${OUTPUT_DIR}/${OPSI_REPOS_FILE_PATTERN}-src.zip ${PRODUCT_DIR} 
 }
 
 

@@ -57,9 +57,9 @@ function  process_file() {
     if [ "$format" = "cp" ]; then
 	cp $src $dst
     elif [ "$format" = "7zip" ]; then
-	7z x -o$dst $src
+	$CMD_7z x -o$dst $src
     elif [ "$format" = "unzip" ]; then
-	unzip $src -d $dst
+	$CMD_unzip  $src -d $dst
     else
 	fatal_error "Unknown compression format: $format"
     fi  
