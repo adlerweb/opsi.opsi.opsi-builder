@@ -271,6 +271,11 @@ builder_publish() {
 	builder_check_error "Can't upload file ${dst}-src.zip --> ${dst}-src.zip"
     fi
 
+    if [ "${OPSI_REPOS_OPSIMANAGER_INSTALL}" = "true" ] ; then
+	opsi-package-manager -i -v ${dst}.opsi
+	builder_check_error "Can't install ${dst}.opsi"
+    fi
+
     if [ "${OPSI_REPOS_UPLOAD_OPSI_ZSYNC}" = "true" ] ; then 
 	md5sum "${dst}.opsi" | sed 's/ .*//' > ${dst}.opsi.md5
 	builder_check_error "Can't create md5 file"
