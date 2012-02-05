@@ -11,10 +11,12 @@
 builder_config() {
 
     # Define commands
-    CMD_7z="`which 7z`"       ; builder_check_error "No 7z installed"
-    CMD_unzip="`which unzip`"  ; builder_check_error "No unzip installed"
-    CMD_zip="`which zip`"      ; builder_check_error "No zip installed"
-
+    CMD_7z="`which 7z`"                 ; builder_check_error "Command '7z' not installed"
+    CMD_unzip="`which unzip`"           ; builder_check_error "Command 'unzip' not installed"
+    CMD_zip="`which zip`"               ; builder_check_error "Command 'zip' not installed"
+    CMD_unix2dos="`which unix2dos`"     ; builder_check_error "Command 'unix2dos' not installed"
+    CMD_identify="`which identify`"     ; builder_check_error "Command 'identify' (ImageMagick) not installed"
+    CMD_zsyncmake="`which zsyncmake`"   ; builder_check_error "Command 'zsyncmake' not installed"
 
     # Check temp dir
     test -d ${TMP_DIR}
@@ -66,7 +68,7 @@ builder_config() {
 # Prepare build
 ####################
 builder_prepare() {
-
+    echo "builder_prepare: "
     # Check if the package is still build
     if  [ -z "$OPSI_REPOS_FORCE_UPLOAD" ] && [ -f "${OPSI_REPOS_PRODUCT_DIR}/${OPSI_REPOS_FILE_PATTERN}.opsi" ]  ; then
 	echo "Directory ${OPSI_REPOS_PRODUCT_DIR} already exists."
@@ -74,15 +76,18 @@ builder_prepare() {
     fi
 
     mkdir -p $DIST_CACHE_DIR
-    echo "Distribution directory: $DIST_CACHE_DIR"
+    log_debug "Distribution directory: $DIST_CACHE_DIR"
 
     # setup work directory
-    OUTPUT_DIR=$(mktemp -d $TMP_DIR/opsi-builder.XXXXXXXXXX) || { echo "Failed to create temp dir"; exit 1; }
+    OUTPUT_DIR=$TMP_DIR/opsi-builder.`date +%Y%m%d-%H%M%S`
+    mkdir -p ${OUTPUT_DIR}
+    builder_check_error "Cannot create temp directory ${OUTPUT_DIR}"
 
     # prepare
     INST_DIR=$OUTPUT_DIR/$PN
     mkdir $INST_DIR
 
+    log_info "  OUTPUT_DIR: $OUTPUT_DIR"
 }
 
 
@@ -168,7 +173,7 @@ builder_create() {
     # Copy files and convert text files to dos format
     cp -Rv ${PRODUCT_DIR}/OPSI         $INST_DIR
     cp -Rv ${PRODUCT_DIR}/CLIENT_DATA  $INST_DIR
-    find $INST_DIR/CLIENT_DATA -type f | xargs -n1 -iREP sh -c 'file -i $0 | grep "text/plain" && unix2dos $0 ' REP >/dev/null
+    find $INST_DIR/CLIENT_DATA -type f | xargs -n1 -iREP sh -c 'file -i $0 | grep "text/plain" && '$CMD_unix2dos' $0 ' REP >/dev/null
 
     # converting icon file
     local iconfile_src=${DL_DIST_FILE[$ICON_DL_INDEX]}
@@ -272,15 +277,15 @@ builder_publish() {
     fi
 
     if [ "${OPSI_REPOS_OPSIMANAGER_INSTALL}" = "true" ] ; then
-	opsi-package-manager -i -v ${dst}.opsi
-	builder_check_error "Can't install ${dst}.opsi"
+	opsi-package-manager -i -v ${src}.opsi
+	builder_check_error "Can't install ${src}.opsi"
     fi
 
     if [ "${OPSI_REPOS_UPLOAD_OPSI_ZSYNC}" = "true" ] ; then 
-	md5sum "${dst}.opsi" | sed 's/ .*//' > ${dst}.opsi.md5
+	md5sum "${src}.opsi" | sed 's/ .*//' > ${dst}.opsi.md5
 	builder_check_error "Can't create md5 file"
 	
-	zsyncmake -u ${OPSI_REPOS_FILE_PATTERN}.opsi -o "${dst}.opsi.zsync" "${dst}.opsi"
+	${CMD_zsyncmake} -u ${OPSI_REPOS_FILE_PATTERN}.opsi -o "${dst}.opsi.zsync" "${src}.opsi"
 	builder_check_error "Can't create zsync file"
     fi
 

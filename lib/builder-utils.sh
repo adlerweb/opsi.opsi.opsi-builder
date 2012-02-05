@@ -130,9 +130,9 @@ convert_image() {
     local src=$1
     local dst=$2
 
-    local hight=`identify -format "%h" $src`
-    local wight=`identify -format "%w" $src`
-    identify -format "%wx%h" $src
+    local hight=`${CMD_identify} -format "%h" $src`
+    local wight=`${CMD_identify} -format "%w" $src`
+    ${CMD_identify} -format "%wx%h" $src
 
     if [ $wight -lt $hight ] ; then
 	# Its higher so force x160 and let imagemagic decide the right wight
@@ -165,8 +165,8 @@ convert_image() {
 
     # New size
     # identify -format "%wx%h" $dst
-    hight=`identify -format "%h" $dst`
-    wight=`identify -format "%w" $dst`
+    hight=`${CMD_identify} -format "%h" $dst`
+    wight=`${CMD_identify} -format "%w" $dst`
     log_debug "Opsi Icon Wight: $wight  Hight: $hight"
 
 }
