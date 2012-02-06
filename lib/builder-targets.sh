@@ -303,17 +303,20 @@ builder_publish() {
     # Create revision file for this 
     local rev_file=${OPSI_REPOS_PRODUCT_DIR}/${PN}-${VERSION}-${CREATOR_TAG}${RELEASE}.cfg
     cat > $rev_file <<EOF
+REV_VENDOR=${VENDOR}
 REV_PN=${PN}
-REV_TIMESTAMP=`date +"%s"`
 REV_VERSION=${VERSION}
 REV_RELEASE=${RELEASE}
+REV_TYPE=${TYPE}
+REV_STATUS=${STATUS}
+REV_TIMESTAMP=`date +"%s"`
 REV_CREATOR_TAG=${CREATOR_TAG}
 REV_OPSI_REPOS_FILE_PATTERN=${OPSI_REPOS_FILE_PATTERN}
 EOF
 
 
    # Purge old product versions - defined by limit OPSI_REPOS_PURGE_LIMIT
-   if [ "${OPSI_REPOS_PURGE}" = "true" ]  && [ ! -z "${OPSI_REPOS_PURGE_LIMIT}" ] && [  "${OPSI_REPOS_PURGE_LIMIT}" > 0 ] ; then
+   if [ "${OPSI_REPOS_PURGE}" = "true" ]  && [ ! -z "${OPSI_REPOS_PURGE_LIMIT}" ]  && [ "${OPSI_REPOS_PURGE_LIMIT}" > 0 ] && [ "${STATUS}" = "${OPSI_REPOS_PURGE_STATUS}" ] ; then
        echo "Autopurging enabled"
 
        # determinte max version to delete
@@ -339,9 +342,10 @@ EOF
        for cfg_sort_file in `tail -${limit} ${file_sort_list} | ${CMD_comm} -13 - ${file_sort_list}` ; do
 
 	   local cfg_file=`echo $cfg_sort_file | cut -f 2 -d ";"`
-	   dir_base=`dirname ${cfg_file}`
 	   . ${cfg_file}
+	   if [ "${REV_STATUS}" != "${OPSI_REPOS_PURGE_STATUS}" ] ; then continue; fi
 
+	   dir_base=`dirname ${cfg_file}`
 	   product_file="${dir_base}/${REV_OPSI_REPOS_FILE_PATTERN}"
 	   echo "  Purging product version: $product_file.*"
 
