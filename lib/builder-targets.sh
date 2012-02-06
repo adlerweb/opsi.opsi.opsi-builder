@@ -90,7 +90,7 @@ builder_prepare() {
     log_debug "Distribution directory: $DIST_CACHE_DIR"
 
     # setup work directory
-    OUTPUT_DIR=$TMP_DIR/opsi-builder.`date +%Y%m%d-%H%M%S`
+    OUTPUT_DIR="$TMP_DIR/opsi-builder.`date +%Y%m%d-%H%M%S`.$$"
     mkdir -p ${OUTPUT_DIR}
     builder_check_error "Cannot create temp directory ${OUTPUT_DIR}"
 
