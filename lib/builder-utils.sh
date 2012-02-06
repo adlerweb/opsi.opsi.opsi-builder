@@ -224,3 +224,36 @@ create_winst_varfile() {
 
     echo >>$var_file
 }
+
+#####################
+# void calc_release() 
+#
+# Description:
+#   Calculate new release based on
+#   the latest one found in the repository.
+# 
+# $RELEASE is set to the calculated release.
+# 
+####################
+function calc_release() {
+
+       # Find all revision files and sort them
+       local file_list=`mktemp /tmp/opsi-builder.calc_release.XXXXXXXXXXX`
+       for cfg_file in `find ${OPSI_REPOS_BASE_DIR} -name "${PN}-${VERSION}-${CREATOR_TAG}*.cfg" -print ` ; do   
+	   . ${cfg_file}
+	   printf "%08d;$cfg_file\n" $REV_RELEASE >> ${file_list}
+       done
+       local oldest_cfg=`sort -n ${file_list} | cut -f 2 -d ";" | tail -1`
+       rm -f ${file_list}
+
+       if [ ! -f "${oldest_cfg}" ] ; then
+	   echo "Warning: no cfg-file found for this product. RELEASE will be set to 1"
+	   RELEASE=1
+       else      
+	   log_debug "calc_release() oldest_cfg: ${oldest_cfg}"
+	   . ${oldest_cfg}
+	   log_debug "  latest release: $REV_RELEASE"
+	   RELEASE=`expr ${REV_RELEASE} + 1 2> /dev/null`
+	   builder_check_error "Cannot incrememnt REV_RELEASE from file ${oldest_cfg}"
+       fi
+}

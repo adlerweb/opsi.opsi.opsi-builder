@@ -45,8 +45,13 @@ builder_config() {
     # change some variable from the builder-product.cfg dynamically:
     # autogenerate release number, if we are in status "integration"
     if [ "$STATUS" = "integration" ] ; then
-	# OPSI/control:RELEASE is limited to max 16 chars - take care in regards to the CREATOR_TAG
-	RELEASE="${STATUS_INTEGRATION_RELEASE}"
+	if [ "${STATUS_INTEGRATION_RELEASE}" = "func:inc1" ] ; then
+	    . ${config}
+	    calc_release
+	else
+	    # OPSI/control:RELEASE is limited to max 16 chars - take care in regards to the CREATOR_TAG
+	    RELEASE="${STATUS_INTEGRATION_RELEASE}"
+	fi
     fi
 
     # Read configurationfile
@@ -310,6 +315,8 @@ EOF
    # Purge old product versions - defined by limit OPSI_REPOS_PURGE_LIMIT
    if [ "${OPSI_REPOS_PURGE}" = "true" ]  && [ ! -z "${OPSI_REPOS_PURGE_LIMIT}" ] && [  "${OPSI_REPOS_PURGE_LIMIT}" > 0 ] ; then
        echo "Autopurging enabled"
+
+       # determinte max version to delete
        local limit
        eval "`echo limit=\\$\\{OPSI_REPOS_PURGE_LIMIT_${PN}\\}`"
        if [ -z "$limit" ] || [ ! `expr $limit + 1 2> /dev/null` ]  ; then
@@ -317,10 +324,21 @@ EOF
        fi
        echo "  Purging, max. number of versions: $limit"
 
-       # Find all revision files
+       # Find all revision files and sort them
        local file_list=${OUTPUT_DIR}/product-file-list.txt
-       find ${OPSI_REPOS_BASE_DIR} -name "${PN}-${VERSION}-${CREATOR_TAG}*.cfg" -exec echo {} \; | sort > ${file_list}
-       for cfg_file in `tail -${limit} ${file_list} | ${CMD_comm} -13 - ${file_list}` ; do
+       local file_sort_list=${OUTPUT_DIR}/product-file-sort-list.txt
+       rm -f ${file_list}
+       for cfg_file in `find ${OPSI_REPOS_BASE_DIR} -name "${PN}-${VERSION}-${CREATOR_TAG}*.cfg" -print ` ; do   
+	   . ${cfg_file}
+	   printf "%08d;$cfg_file\n" $REV_RELEASE >> ${file_list}
+       done
+       sort -n ${file_list}  > ${file_sort_list}
+
+       # Delete the oldest files
+       log_debug "base list for calculate purge:"
+       for cfg_sort_file in `tail -${limit} ${file_sort_list} | ${CMD_comm} -13 - ${file_sort_list}` ; do
+
+	   local cfg_file=`echo $cfg_sort_file | cut -f 2 -d ";"`
 	   dir_base=`dirname ${cfg_file}`
 	   . ${cfg_file}
 
@@ -330,12 +348,12 @@ EOF
 	   # Paranoid ... check the files to delete first
 	   if [ ! -z "${dir_base}" ] && [ -d "${OPSI_REPOS_BASE_DIR}" ] ; then
 	       rm -f ${product_file}.* ${cfg_file}
-	   fi
-	   
-	   # remove directory - if it's empty
-	   if [ $(ls -1A ${dir_base} | wc -l) -eq 0 ]; then
-	       rmdir ${dir_base}
-	   fi
+
+  	       # remove directory - if it's empty
+	       if [ $(ls -1A ${dir_base} | wc -l) -eq 0 ]; then
+		   rmdir ${dir_base}
+	       fi
+	   fi	   
        done
    fi
 }
