@@ -17,6 +17,7 @@ builder_config() {
     CMD_unix2dos="`which unix2dos`"     ; builder_check_error "Command 'unix2dos' not installed"
     CMD_identify="`which identify`"     ; builder_check_error "Command 'identify' (ImageMagick) not installed"
     CMD_zsyncmake="`which zsyncmake`"   ; builder_check_error "Command 'zsyncmake' not installed"
+    CMD_comm="`which comm`"             ; builder_check_error "Command 'comm' not installed"
 
     # Check temp dir
     test -d ${TMP_DIR}
@@ -62,6 +63,11 @@ builder_config() {
 	fatal_error "unknown TYPE: $TYPE"
     fi
 
+    # Check, if variable is numeric
+    if [ ! `expr ${OPSI_REPOS_PURGE_LIMIT} + 1 2> /dev/null` ]   ; then
+	fatal_error "OPSI_REPOS_PURGE_LIMIT must be numeric"
+    fi
+
 }
 
 #####################
@@ -70,8 +76,8 @@ builder_config() {
 builder_prepare() {
     echo "builder_prepare: "
     # Check if the package is still build
-    if  [ -z "$OPSI_REPOS_FORCE_UPLOAD" ] && [ -f "${OPSI_REPOS_PRODUCT_DIR}/${OPSI_REPOS_FILE_PATTERN}.opsi" ]  ; then
-	echo "Directory ${OPSI_REPOS_PRODUCT_DIR} already exists."
+    if  [  "$OPSI_REPOS_FORCE_UPLOAD" != "true" ] && [ -f "${OPSI_REPOS_PRODUCT_DIR}/${OPSI_REPOS_FILE_PATTERN}.opsi" ]  ; then
+	echo "File ${OPSI_REPOS_PRODUCT_DIR}/${OPSI_REPOS_FILE_PATTERN}.opsi already exists."
 	exit 1
     fi
 
@@ -289,8 +295,49 @@ builder_publish() {
 	builder_check_error "Can't create zsync file"
     fi
 
+    # Create revision file for this 
+    local rev_file=${OPSI_REPOS_PRODUCT_DIR}/${PN}-${VERSION}-${CREATOR_TAG}${RELEASE}.cfg
+    cat > $rev_file <<EOF
+REV_PN=${PN}
+REV_TIMESTAMP=`date +"%s"`
+REV_VERSION=${VERSION}
+REV_RELEASE=${RELEASE}
+REV_CREATOR_TAG=${CREATOR_TAG}
+REV_OPSI_REPOS_FILE_PATTERN=${OPSI_REPOS_FILE_PATTERN}
+EOF
 
 
+   # Purge old product versions - defined by limit OPSI_REPOS_PURGE_LIMIT
+   if [ "${OPSI_REPOS_PURGE}" = "true" ]  && [ ! -z "${OPSI_REPOS_PURGE_LIMIT}" ] && [  "${OPSI_REPOS_PURGE_LIMIT}" > 0 ] ; then
+       echo "Autopurging enabled"
+       local limit
+       eval "`echo limit=\\$\\{OPSI_REPOS_PURGE_LIMIT_${PN}\\}`"
+       if [ -z "$limit" ] || [ ! `expr $limit + 1 2> /dev/null` ]  ; then
+	   limit=${OPSI_REPOS_PURGE_LIMIT}
+       fi
+       echo "  Purging, max. number of versions: $limit"
+
+       # Find all revision files
+       local file_list=${OUTPUT_DIR}/product-file-list.txt
+       find ${OPSI_REPOS_BASE_DIR} -name "${PN}-${VERSION}-${CREATOR_TAG}*.cfg" -exec echo {} \; | sort > ${file_list}
+       for cfg_file in `tail -${limit} ${file_list} | ${CMD_comm} -13 - ${file_list}` ; do
+	   dir_base=`dirname ${cfg_file}`
+	   . ${cfg_file}
+
+	   product_file="${dir_base}/${REV_OPSI_REPOS_FILE_PATTERN}"
+	   echo "  Purging product version: $product_file.*"
+
+	   # Paranoid ... check the files to delete first
+	   if [ ! -z "${dir_base}" ] && [ -d "${OPSI_REPOS_BASE_DIR}" ] ; then
+	       rm -f ${product_file}.* ${cfg_file}
+	   fi
+	   
+	   # remove directory - if it's empty
+	   if [ $(ls -1A ${dir_base} | wc -l) -eq 0 ]; then
+	       rmdir ${dir_base}
+	   fi
+       done
+   fi
 }
 
 ###################
