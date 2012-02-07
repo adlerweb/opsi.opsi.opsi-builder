@@ -18,6 +18,7 @@ builder_config() {
     CMD_identify="`which identify`"     ; builder_check_error "Command 'identify' (ImageMagick) not installed"
     CMD_zsyncmake="`which zsyncmake`"   ; builder_check_error "Command 'zsyncmake' not installed"
     CMD_comm="`which comm`"             ; builder_check_error "Command 'comm' not installed"
+    CMD_sha1sum="`which sha1sum`"       ; builder_check_error "Command 'sha1sum' not installed"
 
     # Check temp dir
     test -d ${TMP_DIR}
@@ -145,14 +146,16 @@ builder_retrieve() {
 
 	    # Check sha1
 	    if  [ ! -e "${PRODUCT_DIR}/${basename}.sha1sum" ] && [ "$CHECKSUM_AUTOCREATE" == "true" ] ; then
-		sha1sum ${DL_DIST_FILE[$i]}  > ${PRODUCT_DIR}/${basename}.sha1sum
+		$CMD_sha1sum ${DL_DIST_FILE[$i]}  > ${PRODUCT_DIR}/${basename}.sha1sum
 		downloaded=1
 		echo "  WARNING: SHA1 checksum (${DL_DIST_FILE[$i]}.sha1sum) was created dynamically because auf CHECKSUM_AUTOCREATE=$CHECKSUM_AUTOCREATE"
 	    else
 	        # testing the checksum of the downloaded files
 		local sha1sum_val=`cat ${PRODUCT_DIR}/${basename}.sha1sum | cut -d " " -f1`
 		local checksum_val=`sha1sum ${DL_DIST_FILE[$i]} | cut -d " " -f1`
-		if [ "$checksum_val" == "$sha1sum_val" ] ; then 
+echo sha1sum_val: $sha1sum_val
+echo checksum_val: $checksum_val
+		if [ "$checksum_val" = "$sha1sum_val" ] ; then 
 		    downloaded=1
 		fi	
 	    fi
@@ -253,9 +256,10 @@ builder_package() {
 	builder_check_error "can't move file  ${OUTPUT_DIR}/${opsi_file} ${OUTPUT_DIR}/${OPSI_REPOS_FILE_PATTERN}.opsi"
     fi
 
+# --exclude \*/.git\* 
     # create source- and binary package package
-    test "${OPSI_REPOS_UPLOAD_BIN}" = "true"    && $CMD_zip -r ${OUTPUT_DIR}/${OPSI_REPOS_FILE_PATTERN}.zip $INST_DIR
-    test "${OPSI_REPOS_UPLOAD_SOURCE}" = "true" && $CMD_zip -r ${OUTPUT_DIR}/${OPSI_REPOS_FILE_PATTERN}-src.zip ${PRODUCT_DIR} 
+    test "${OPSI_REPOS_UPLOAD_BIN}" = "true"    && $CMD_zip --exclude \*/.git\* @ -r ${OUTPUT_DIR}/${OPSI_REPOS_FILE_PATTERN}.zip $INST_DIR
+    test "${OPSI_REPOS_UPLOAD_SOURCE}" = "true" && $CMD_zip --exclude \*/.git\* @ -r ${OUTPUT_DIR}/${OPSI_REPOS_FILE_PATTERN}-src.zip ${PRODUCT_DIR} 
 }
 
 
@@ -322,7 +326,7 @@ EOF
        # determinte max version to delete
        local limit
        eval "`echo limit=\\$\\{OPSI_REPOS_PURGE_LIMIT_${PN}\\}`"
-       if [ -z "$limit" ] || [ ! `expr $limit + 1 2> /dev/null` ]  ; then
+       if [ -z "$limit" ] || [ ! `expr $limit + 1 2>/dev/null` ]  ; then
 	   limit=${OPSI_REPOS_PURGE_LIMIT}
        fi
        echo "  Purging, max. number of versions: $limit"
@@ -347,11 +351,11 @@ EOF
 
 	   dir_base=`dirname ${cfg_file}`
 	   product_file="${dir_base}/${REV_OPSI_REPOS_FILE_PATTERN}"
-	   echo "  Purging product version: $product_file.*"
+	   echo "  Purging product version: $product_file*"
 
 	   # Paranoid ... check the files to delete first
-	   if [ ! -z "${dir_base}" ] && [ -d "${OPSI_REPOS_BASE_DIR}" ] ; then
-	       rm -f ${product_file}.* ${cfg_file}
+	   if [ ! -z "${dir_base}" ] && [ -d "${OPSI_REPOS_BASE_DIR}" ] && [ ! -z "$product_file" ] ; then
+	       rm -f ${product_file}* ${cfg_file}
 
   	       # remove directory - if it's empty
 	       if [ $(ls -1A ${dir_base} | wc -l) -eq 0 ]; then
