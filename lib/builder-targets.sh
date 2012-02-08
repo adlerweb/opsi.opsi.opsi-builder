@@ -153,8 +153,6 @@ builder_retrieve() {
 	        # testing the checksum of the downloaded files
 		local sha1sum_val=`cat ${PRODUCT_DIR}/${basename}.sha1sum | cut -d " " -f1`
 		local checksum_val=`sha1sum ${DL_DIST_FILE[$i]} | cut -d " " -f1`
-echo sha1sum_val: $sha1sum_val
-echo checksum_val: $checksum_val
 		if [ "$checksum_val" = "$sha1sum_val" ] ; then 
 		    downloaded=1
 		fi	
