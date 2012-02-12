@@ -18,6 +18,7 @@ builder_config() {
     CMD_identify="`which identify`"     ; builder_check_error "Command 'identify' (ImageMagick) not installed"
     CMD_zsyncmake="`which zsyncmake`"   ; builder_check_error "Command 'zsyncmake' not installed"
     CMD_comm="`which comm`"             ; builder_check_error "Command 'comm' not installed"
+    CMD_sha1sum="`which sha1sum`"       ; builder_check_error "Command 'sha1sum' not installed"
 
     # Check temp dir
     test -d ${TMP_DIR}
@@ -45,8 +46,13 @@ builder_config() {
     # change some variable from the builder-product.cfg dynamically:
     # autogenerate release number, if we are in status "integration"
     if [ "$STATUS" = "integration" ] ; then
-	# OPSI/control:RELEASE is limited to max 16 chars - take care in regards to the CREATOR_TAG
-	RELEASE="${STATUS_INTEGRATION_RELEASE}"
+	if [ "${STATUS_INTEGRATION_RELEASE}" = "func:inc1" ] ; then
+	    . ${config}
+	    calc_release
+	else
+	    # OPSI/control:RELEASE is limited to max 16 chars - take care in regards to the CREATOR_TAG
+	    RELEASE="${STATUS_INTEGRATION_RELEASE}"
+	fi
     fi
 
     # Read configurationfile
@@ -85,7 +91,7 @@ builder_prepare() {
     log_debug "Distribution directory: $DIST_CACHE_DIR"
 
     # setup work directory
-    OUTPUT_DIR=$TMP_DIR/opsi-builder.`date +%Y%m%d-%H%M%S`
+    OUTPUT_DIR="$TMP_DIR/opsi-builder.`date +%Y%m%d-%H%M%S`.$$"
     mkdir -p ${OUTPUT_DIR}
     builder_check_error "Cannot create temp directory ${OUTPUT_DIR}"
 
@@ -140,14 +146,16 @@ builder_retrieve() {
 
 	    # Check sha1
 	    if  [ ! -e "${PRODUCT_DIR}/${basename}.sha1sum" ] && [ "$CHECKSUM_AUTOCREATE" == "true" ] ; then
-		sha1sum ${DL_DIST_FILE[$i]}  > ${PRODUCT_DIR}/${basename}.sha1sum
+		$CMD_sha1sum ${DL_DIST_FILE[$i]}  > ${PRODUCT_DIR}/${basename}.sha1sum
 		downloaded=1
 		echo "  WARNING: SHA1 checksum (${DL_DIST_FILE[$i]}.sha1sum) was created dynamically because auf CHECKSUM_AUTOCREATE=$CHECKSUM_AUTOCREATE"
 	    else
 	        # testing the checksum of the downloaded files
 		local sha1sum_val=`cat ${PRODUCT_DIR}/${basename}.sha1sum | cut -d " " -f1`
 		local checksum_val=`sha1sum ${DL_DIST_FILE[$i]} | cut -d " " -f1`
-		if [ "$checksum_val" == "$sha1sum_val" ] ; then 
+echo sha1sum_val: $sha1sum_val
+echo checksum_val: $checksum_val
+		if [ "$checksum_val" = "$sha1sum_val" ] ; then 
 		    downloaded=1
 		fi	
 	    fi
@@ -248,9 +256,10 @@ builder_package() {
 	builder_check_error "can't move file  ${OUTPUT_DIR}/${opsi_file} ${OUTPUT_DIR}/${OPSI_REPOS_FILE_PATTERN}.opsi"
     fi
 
+# --exclude \*/.git\* 
     # create source- and binary package package
-    test "${OPSI_REPOS_UPLOAD_BIN}" = "true"    && $CMD_zip -r ${OUTPUT_DIR}/${OPSI_REPOS_FILE_PATTERN}.zip $INST_DIR
-    test "${OPSI_REPOS_UPLOAD_SOURCE}" = "true" && $CMD_zip -r ${OUTPUT_DIR}/${OPSI_REPOS_FILE_PATTERN}-src.zip ${PRODUCT_DIR} 
+    test "${OPSI_REPOS_UPLOAD_BIN}" = "true"    && $CMD_zip --exclude \*/.git\* @ -r ${OUTPUT_DIR}/${OPSI_REPOS_FILE_PATTERN}.zip $INST_DIR
+    test "${OPSI_REPOS_UPLOAD_SOURCE}" = "true" && $CMD_zip --exclude \*/.git\* @ -r ${OUTPUT_DIR}/${OPSI_REPOS_FILE_PATTERN}-src.zip ${PRODUCT_DIR} 
 }
 
 
@@ -298,44 +307,61 @@ builder_publish() {
     # Create revision file for this 
     local rev_file=${OPSI_REPOS_PRODUCT_DIR}/${PN}-${VERSION}-${CREATOR_TAG}${RELEASE}.cfg
     cat > $rev_file <<EOF
+REV_VENDOR=${VENDOR}
 REV_PN=${PN}
-REV_TIMESTAMP=`date +"%s"`
 REV_VERSION=${VERSION}
 REV_RELEASE=${RELEASE}
+REV_TYPE=${TYPE}
+REV_STATUS=${STATUS}
+REV_TIMESTAMP=`date +"%s"`
 REV_CREATOR_TAG=${CREATOR_TAG}
 REV_OPSI_REPOS_FILE_PATTERN=${OPSI_REPOS_FILE_PATTERN}
 EOF
 
 
    # Purge old product versions - defined by limit OPSI_REPOS_PURGE_LIMIT
-   if [ "${OPSI_REPOS_PURGE}" = "true" ]  && [ ! -z "${OPSI_REPOS_PURGE_LIMIT}" ] && [  "${OPSI_REPOS_PURGE_LIMIT}" > 0 ] ; then
+   if [ "${OPSI_REPOS_PURGE}" = "true" ]  && [ ! -z "${OPSI_REPOS_PURGE_LIMIT}" ]  && [ "${OPSI_REPOS_PURGE_LIMIT}" > 0 ] && [ "${STATUS}" = "${OPSI_REPOS_PURGE_STATUS}" ] ; then
        echo "Autopurging enabled"
+
+       # determinte max version to delete
        local limit
        eval "`echo limit=\\$\\{OPSI_REPOS_PURGE_LIMIT_${PN}\\}`"
-       if [ -z "$limit" ] || [ ! `expr $limit + 1 2> /dev/null` ]  ; then
+       if [ -z "$limit" ] || [ ! `expr $limit + 1 2>/dev/null` ]  ; then
 	   limit=${OPSI_REPOS_PURGE_LIMIT}
        fi
        echo "  Purging, max. number of versions: $limit"
 
-       # Find all revision files
+       # Find all revision files and sort them
        local file_list=${OUTPUT_DIR}/product-file-list.txt
-       find ${OPSI_REPOS_BASE_DIR} -name "${PN}-${VERSION}-${CREATOR_TAG}*.cfg" -exec echo {} \; | sort > ${file_list}
-       for cfg_file in `tail -${limit} ${file_list} | ${CMD_comm} -13 - ${file_list}` ; do
-	   dir_base=`dirname ${cfg_file}`
+       local file_sort_list=${OUTPUT_DIR}/product-file-sort-list.txt
+       rm -f ${file_list}
+       for cfg_file in `find ${OPSI_REPOS_BASE_DIR} -name "${PN}-${VERSION}-${CREATOR_TAG}*.cfg" -print ` ; do   
 	   . ${cfg_file}
+	   printf "%08d;$cfg_file\n" $REV_RELEASE >> ${file_list}
+       done
+       sort -n ${file_list}  > ${file_sort_list}
 
+       # Delete the oldest files
+       log_debug "base list for calculate purge:"
+       for cfg_sort_file in `tail -${limit} ${file_sort_list} | ${CMD_comm} -13 - ${file_sort_list}` ; do
+
+	   local cfg_file=`echo $cfg_sort_file | cut -f 2 -d ";"`
+	   . ${cfg_file}
+	   if [ "${REV_STATUS}" != "${OPSI_REPOS_PURGE_STATUS}" ] ; then continue; fi
+
+	   dir_base=`dirname ${cfg_file}`
 	   product_file="${dir_base}/${REV_OPSI_REPOS_FILE_PATTERN}"
-	   echo "  Purging product version: $product_file.*"
+	   echo "  Purging product version: $product_file*"
 
 	   # Paranoid ... check the files to delete first
-	   if [ ! -z "${dir_base}" ] && [ -d "${OPSI_REPOS_BASE_DIR}" ] ; then
-	       rm -f ${product_file}.* ${cfg_file}
-	   fi
-	   
-	   # remove directory - if it's empty
-	   if [ $(ls -1A ${dir_base} | wc -l) -eq 0 ]; then
-	       rmdir ${dir_base}
-	   fi
+	   if [ ! -z "${dir_base}" ] && [ -d "${OPSI_REPOS_BASE_DIR}" ] && [ ! -z "$product_file" ] ; then
+	       rm -f ${product_file}* ${cfg_file}
+
+  	       # remove directory - if it's empty
+	       if [ $(ls -1A ${dir_base} | wc -l) -eq 0 ]; then
+		   rmdir ${dir_base}
+	       fi
+	   fi	   
        done
    fi
 }

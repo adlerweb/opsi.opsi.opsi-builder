@@ -19,42 +19,7 @@
 #
 ##############################################################################
 
-#function config() {
-#    echo "Config - doing some commands before calling the builder_config" 
-#    builder_config
-#    echo "Config - doing some commands after calling the builder_config" 
-#}
-
-#function prepare() { 
-#    echo "Prepare" 
-#    builder_prepare
-#}
-
-function retrieve() { 
-    echo "Retrieve" 
-    builder_retrieve
-}
-
-function create() { 
-    echo  "Create"
-    builder_create
-}
-
-function package() { 
-    echo "Package" 
-    builder_package
-}
-
-function publish() {
-    echo "Publish"
-    builder_publish
-}
-
-function commit() {
-    echo "Commit"
-    # builder_commit
-}
 function cleanup() {
-    echo "Cleanup: output_dir: $output_dir"
-    # builder_cleanup
+    echo "Cleanup"
+    builder_cleanup
 }

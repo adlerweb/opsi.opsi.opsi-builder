@@ -39,7 +39,6 @@ builder_controller() {
 ####################
 # Main
 ####################
-
 # get the 'real' directory this program stored in (resolve symbolic links)
 PRG=$(readlink -f $0)
 BASEDIR=`dirname "$PRG"`
