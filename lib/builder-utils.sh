@@ -138,28 +138,31 @@ convert_image() {
 	# Its higher so force x160 and let imagemagic decide the right wight
 	# then add transparency to the rest of the image to fit 160x160
 	log_debug "Icon Wight: $wight < Hight: $hight"
-	convert $src -transparent white -background transparent -resize x160 \
-	    -size 160x160 xc:transparent +swap -gravity center -composite $dst
+	convert -colorspace RGB $src -transparent white -background transparent \
+	    -resize x160 -size 160x160 xc:transparent +swap -gravity center \
+	    -composite $dst
 	builder_check_error "converting image"
     elif [ $wight -gt $hight ] ; then
 	# Its wider so force 160x and let imagemagic decide the right hight
 	# then add transparency to the rest of the image to fit 160x160
 	log_debug "Icon Wight: $wight > Hight: $hight"
-	convert $src -transparent white -background transparent -resize 160x \
-	    -size 160x160 xc:transparent +swap -gravity center -composite $dst
+	convert -colorspace RGB $src -transparent white -background transparent \
+	    -resize 160x -size 160x160 xc:transparent +swap -gravity center \
+	    -composite $dst
 	builder_check_error "converting image"
     elif [ $wight -eq $hight ] ; then
 	# Its scare so force 160x160
 	log_debug "Icon Wight: $wight = Hight: $hight"
-	convert $src -transparent white -background transparent -resize 160x160 \
-	    -size 160x160 xc:transparent +swap -gravity center -composite $dst
+	convert -colorspace RGB $src -transparent white -background transparent \
+	    -resize 160x160 -size 160x160 xc:transparent +swap -gravity center \
+	    -composite $dst
 	builder_check_error "converting image"
     else
 	# Imagemagic is unable to detect the aspect ratio so just force 160x160
 	# this could result in streched images
 	log_debug "Icon Wight: $wight unknown Hight: $hight"
-	convert $src -transparent white -background transparent -resize 160x160 \
-	    xc:transparent +swap -gravity center -composite $dst
+	convert -colorspace RGB $src -transparent white -background transparent \
+	    -resize 160x160 xc:transparent +swap -gravity center -composite $dst
 	builder_check_error "converting image"
     fi
 
