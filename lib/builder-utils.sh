@@ -140,7 +140,7 @@ convert_image() {
 	log_debug "Icon Wight: $wight < Hight: $hight"
 	convert $src -colorspace RGB -transparent white -background transparent \
 	    -resize x160 -size 160x160 xc:transparent +swap -gravity center \
-	    -composite -modulate 110 png8:$dst
+	    -composite -modulate 110 -colors 256 png8:$dst
 	builder_check_error "converting image"
     elif [ $wight -gt $hight ] ; then
 	# Its wider so force 160x and let imagemagic decide the right hight
@@ -148,14 +148,14 @@ convert_image() {
 	log_debug "Icon Wight: $wight > Hight: $hight"
 	convert $src -colorspace RGB -transparent white -background transparent \
 	    -resize 160x -size 160x160 xc:transparent +swap -gravity center \
-	    -composite -modulate 110 png8:$dst
+	    -composite -modulate 110 -colors 256 png8:$dst
 	builder_check_error "converting image"
     elif [ $wight -eq $hight ] ; then
 	# Its scare so force 160x160
 	log_debug "Icon Wight: $wight = Hight: $hight"
 	convert $src -colorspace RGB -transparent white -background transparent \
 	    -resize 160x160 -size 160x160 xc:transparent +swap -gravity center \
-	    -composite -modulate 110 png8:$dst
+	    -composite -modulate 110 -colors 256 png8:$dst
 	builder_check_error "converting image"
     else
 	# Imagemagic is unable to detect the aspect ratio so just force 160x160
@@ -163,7 +163,7 @@ convert_image() {
 	log_debug "Icon Wight: $wight unknown Hight: $hight"
 	convert $src -colorspace RGB -transparent white -background transparent \
 	    -resize 160x160 xc:transparent +swap -gravity center -composite \
-	    -modulate 110 png8:$dst
+	    -modulate 110 -colors 256 png8:$dst
 	builder_check_error "converting image"
     fi
 
