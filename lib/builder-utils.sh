@@ -134,9 +134,10 @@ convert_image() {
     local wight=`${CMD_identify} -format "%w" $src`
     ${CMD_identify} -format "%wx%h" $src
 
+    # first resize the image to the new aspect ratio and add white borders
     if [ $wight -lt $hight ] ; then
 	# Its higher so force x160 and let imagemagic decide the right wight
-	# then add transparency to the rest of the image to fit 160x160
+	# then add white to the rest of the image to fit 160x160
 	log_debug "Icon Wight: $wight < Hight: $hight"
 	convert $src -colorspace RGB -resize x160 \
 	    -size 160x160 xc:white +swap -gravity center  -composite \
@@ -144,7 +145,7 @@ convert_image() {
 	builder_check_error "converting image"
     elif [ $wight -gt $hight ] ; then
 	# Its wider so force 160x and let imagemagic decide the right hight
-	# then add transparency to the rest of the image to fit 160x160
+	# then add white to the rest of the image to fit 160x160
 	log_debug "Icon Wight: $wight > Hight: $hight"
 	convert $src -colorspace RGB -resize 160x \
 	    -size 160x160 xc:white +swap -gravity center  -composite \
