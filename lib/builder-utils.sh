@@ -134,35 +134,56 @@ convert_image() {
     local wight=`${CMD_identify} -format "%w" $src`
     ${CMD_identify} -format "%wx%h" $src
 
+    # create a diffence image from the source
+    convert $src \( +clone -fx 'p{0,0}' \)  -compose Difference  -composite \
+	-modulate 100,0  +matte  $OUTPUT_DIR/difference.png
+
+    # remove the black, replace with transparency
+    convert $OUTPUT_DIR/difference.png -bordercolor white -border 1x1 -matte \
+	-fill none -fuzz 7% -draw 'matte 1,1 floodfill' -shave 1x1 \
+	$OUTPUT_DIR/removed_black.png
+
+    # create the matte
+    convert $OUTPUT_DIR/removed_black.png -channel matte -separate  +matte \
+	$OUTPUT_DIR/matte.png
+
+    # negate the colors
+    convert $OUTPUT_DIR/matte.png -negate -blur 0x1 \
+	$OUTPUT_DIR/matte-negated.png
+
+    # you are going for: white interior, black exterior
+    composite -compose CopyOpacity $OUTPUT_DIR/matte-negated.png $src \
+	$OUTPUT_DIR/final.png
+
     if [ $wight -lt $hight ] ; then
 	# Its higher so force x160 and let imagemagic decide the right wight
 	# then add transparency to the rest of the image to fit 160x160
 	log_debug "Icon Wight: $wight < Hight: $hight"
-	convert $src -colorspace RGB -transparent white -background transparent \
-	    -resize x160 -size 160x160 xc:transparent +swap -gravity center \
+	convert $OUTPUT_DIR/final.png -colorspace RGB -resize x160 \
+	    -size 160x160 xc:transparent +swap -gravity center \
 	    -composite -modulate 110 -colors 256 png8:$dst
 	builder_check_error "converting image"
     elif [ $wight -gt $hight ] ; then
 	# Its wider so force 160x and let imagemagic decide the right hight
 	# then add transparency to the rest of the image to fit 160x160
 	log_debug "Icon Wight: $wight > Hight: $hight"
-	convert $src -colorspace RGB -transparent white -background transparent \
-	    -resize 160x -size 160x160 xc:transparent +swap -gravity center \
+	convert $OUTPUT_DIR/final.png -colorspace RGB -resize 160x \
+	    -size 160x160 xc:transparent +swap -gravity center \
 	    -composite -modulate 110 -colors 256 png8:$dst
 	builder_check_error "converting image"
     elif [ $wight -eq $hight ] ; then
 	# Its scare so force 160x160
 	log_debug "Icon Wight: $wight = Hight: $hight"
-	convert $src -colorspace RGB -transparent white -background transparent \
-	    -resize 160x160 -size 160x160 xc:transparent +swap -gravity center \
+	convert $OUTPUT_DIR/final.png -colorspace RGB -resize 160x160 \
+	    -size 160x160 xc:transparent +swap -gravity center \
 	    -composite -modulate 110 -colors 256 png8:$dst
 	builder_check_error "converting image"
     else
 	# Imagemagic is unable to detect the aspect ratio so just force 160x160
 	# this could result in streched images
 	log_debug "Icon Wight: $wight unknown Hight: $hight"
-	convert $src -colorspace RGB -transparent white -background transparent \
-	    -resize 160x160 xc:transparent +swap -gravity center -composite \
+	convert $OUTPUT_DIR/final.png -colorspace RGB -resize 160x160 \
+	    xc:transparent +swap -gravity center -composite \
 	    -modulate 110 -colors 256 png8:$dst
 	builder_check_error "converting image"
     fi
