@@ -28,7 +28,7 @@ function  retrieve_file() {
 		rm $dst
 	    fi
 	elif [ "$downloader" = "plowdown" ]; then
-	    fatal_error "plowdown not implemented yet"
+	    plowdown --max-retries=1 -o ${dst%/*} "$src"
 	else
 	    fatal_error "Downloader not implemented: $downloader"
 	fi
