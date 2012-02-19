@@ -13,6 +13,7 @@ builder_config() {
     # Define commands
     CMD_7z="`which 7z`"                 ; builder_check_error "Command '7z' not installed"
     CMD_unzip="`which unzip`"           ; builder_check_error "Command 'unzip' not installed"
+    CMD_unrar="`which unrar`"           ; builder_check_error "Command 'unrar' not installed"
     CMD_zip="`which zip`"               ; builder_check_error "Command 'zip' not installed"
     CMD_unix2dos="`which unix2dos`"     ; builder_check_error "Command 'unix2dos' not installed"
     CMD_identify="`which identify`"     ; builder_check_error "Command 'identify' (ImageMagick) not installed"

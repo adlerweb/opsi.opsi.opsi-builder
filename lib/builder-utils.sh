@@ -28,7 +28,7 @@ function  retrieve_file() {
 		rm $dst
 	    fi
 	elif [ "$downloader" = "plowdown" ]; then
-	    fatal_error "plowdown not implemented yet"
+	    plowdown --max-retries=1 -o ${dst%/*} "$src"
 	else
 	    fatal_error "Downloader not implemented: $downloader"
 	fi
@@ -60,6 +60,8 @@ function  process_file() {
 	$CMD_7z x -o$dst $src
     elif [ "$format" = "unzip" ]; then
 	$CMD_unzip  $src -d $dst
+    elif [ "$format" = "unrar" ]; then
+	$CMD_unrar x $src $dst
     else
 	fatal_error "Unknown compression format: $format"
     fi  
@@ -134,34 +136,60 @@ convert_image() {
     local wight=`${CMD_identify} -format "%w" $src`
     ${CMD_identify} -format "%wx%h" $src
 
+    # first resize the image to the new aspect ratio and add white borders
     if [ $wight -lt $hight ] ; then
 	# Its higher so force x160 and let imagemagic decide the right wight
-	# then add transparency to the rest of the image to fit 160x160
+	# then add white to the rest of the image to fit 160x160
 	log_debug "Icon Wight: $wight < Hight: $hight"
-	convert $src -transparent white -background transparent -resize x160 \
-	    -size 160x160 xc:transparent +swap -gravity center -composite $dst
+	convert $src -colorspace RGB -resize x160 \
+	    -size 160x160 xc:white +swap -gravity center  -composite \
+	    -modulate 110 -colors 256 png8:$OUTPUT_DIR/resize.png
 	builder_check_error "converting image"
     elif [ $wight -gt $hight ] ; then
 	# Its wider so force 160x and let imagemagic decide the right hight
-	# then add transparency to the rest of the image to fit 160x160
+	# then add white to the rest of the image to fit 160x160
 	log_debug "Icon Wight: $wight > Hight: $hight"
-	convert $src -transparent white -background transparent -resize 160x \
-	    -size 160x160 xc:transparent +swap -gravity center -composite $dst
+	convert $src -colorspace RGB -resize 160x \
+	    -size 160x160 xc:white +swap -gravity center  -composite \
+	    -modulate 110 -colors 256 png8:$OUTPUT_DIR/resize.png
 	builder_check_error "converting image"
     elif [ $wight -eq $hight ] ; then
 	# Its scare so force 160x160
 	log_debug "Icon Wight: $wight = Hight: $hight"
-	convert $src -transparent white -background transparent -resize 160x160 \
-	    -size 160x160 xc:transparent +swap -gravity center -composite $dst
+	convert $src -colorspace RGB -resize 160x160 \
+	    -size 160x160 xc:white +swap -gravity center  -composite \
+	    -modulate 110 -colors 256 png8:$OUTPUT_DIR/resize.png
 	builder_check_error "converting image"
     else
 	# Imagemagic is unable to detect the aspect ratio so just force 160x160
 	# this could result in streched images
 	log_debug "Icon Wight: $wight unknown Hight: $hight"
-	convert $src -transparent white -background transparent -resize 160x160 \
-	    xc:transparent +swap -gravity center -composite $dst
+	convert $src -colorspace RGB -resize 160x160 \
+	    -size 160x160 xc:white +swap -gravity center  -composite \
+	    -modulate 110 -colors 256 png8:$OUTPUT_DIR/resize.png
 	builder_check_error "converting image"
     fi
+
+    # create a diffence image from the source
+    convert $OUTPUT_DIR/resize.png \( +clone -fx 'p{0,0}' \)  -compose Difference  -composite \
+	-modulate 100,0  +matte $OUTPUT_DIR/difference.png
+
+    # remove the black, replace with transparency
+    convert $OUTPUT_DIR/difference.png -bordercolor white -border 1x1 -matte \
+	-fill none -fuzz 7% -draw 'matte 1,1 floodfill' -shave 1x1 \
+	$OUTPUT_DIR/removed_black.png
+
+    # create the matte
+    convert $OUTPUT_DIR/removed_black.png -channel matte -separate  +matte \
+	$OUTPUT_DIR/matte.png
+
+    # negate the colors
+    convert $OUTPUT_DIR/matte.png -negate -blur 0x1 \
+	$OUTPUT_DIR/matte-negated.png
+
+    # you are going for: white interior, black exterior
+    composite -compose CopyOpacity $OUTPUT_DIR/matte-negated.png $OUTPUT_DIR/resize.png \
+	$dst
 
     # New size
     # identify -format "%wx%h" $dst

@@ -1,0 +1,37 @@
+[Package]
+version: RELEASE
+depends: 
+incremental: False
+
+[Product]
+type: localboot
+id: !!!plz change!!!
+name: !!!plz change!!!
+description: !!!plz change!!!
+advice: ADVICE
+version: VERSION
+priority: PRIORITY
+licenseRequired: False
+productClasses: 
+setupScript: !!!plz change!!!
+uninstallScript: !!!plz change!!!
+updateScript: 
+alwaysScript: 
+onceScript: 
+customScript: 
+userLoginScript: 
+
+[ProductProperty]
+type: unicode
+name: install_architecture
+multivalue: False
+editable: False
+description: which architecture (32/64 bit) has to be installed
+values: ["32 only", "64 only", "both", "system specific"]
+default: ["system specific"]
+
+[ProductDependency]
+action: setup
+requiredProduct: aio
+requiredStatus: installed
+requirementType: before
