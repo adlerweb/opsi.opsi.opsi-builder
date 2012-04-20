@@ -62,6 +62,8 @@ function  process_file() {
 	$CMD_unzip  $src -d $dst
     elif [ "$format" = "unrar" ]; then
 	$CMD_unrar x $src $dst
+    elif [ "$format" = "lha" ]; then
+	$CMD_lha x -w=$dst $src
     else
 	fatal_error "Unknown compression format: $format"
     fi  
