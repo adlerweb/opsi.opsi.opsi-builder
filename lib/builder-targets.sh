@@ -324,7 +324,8 @@ EOF
 
        # determinte max version to delete
        local limit
-       eval "`echo limit=\\$\\{OPSI_REPOS_PURGE_LIMIT_${PN}\\}`"
+       local pn_limit=`echo ${PN} | sed "s/\./_/g"`
+       eval "`echo limit=\\$\\{OPSI_REPOS_PURGE_LIMIT_${pn_limit}\\}`"
        if [ -z "$limit" ] || [ ! `expr $limit + 1 2>/dev/null` ]  ; then
 	   limit=${OPSI_REPOS_PURGE_LIMIT}
        fi
