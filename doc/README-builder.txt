@@ -11,17 +11,7 @@
      yum install git
 
 
-
-# Define your local, private, individual, not-project dependent  build setup
-# in the file ~/.opsi-builder.cfg OR by using the environment variable OPSI_BUILDER
-# pointing the the configuration.  
-#    export OPSI_BUILDER=/home/dschwager/work/opsi-builder.cfg
-# If no files are availble, the default values will be use 
-# from <opsi-builder-home>/conf/opsi-builder.cfg 
-
-  cp <opsi-builder-home>/conf/opsi-builder.cfg $HOME/.opsi-builder.cfg
-  vi $HOME/.opsi-builder.cfg
-     # may you will change some locations
+# Please check the conf/opsi-builder.conf for detailed information
 
 # May you will add opsi-builder.sh to your PATH
   export PATH=$HOME/work/devtools/bin:$PATH
