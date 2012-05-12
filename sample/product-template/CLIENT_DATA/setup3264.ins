@@ -6,10 +6,15 @@
 [Actions]
 requiredWinstVersion >= "4.10.8.6"
 
-DefVar $MsiId32$
+; DefVar $MsiId32$
+DefVar $MsiIdOld32$
 DefVar $UninstallProgram32$
-DefVar $MsiId64$
+DefVar $IniFile32$
+; DefVar $MsiId64$
+DefVar $MsiIdOld64$
 DefVar $UninstallProgram64$
+DefVar $IniFile64$
+DefVar $IniCfgFile$
 DefVar $LogDir$
 DefVar $ProductId$  
 DefVar $MinimumSpace$
@@ -49,6 +54,7 @@ Set $MinimumSpace$    = "1 MB"
 ; the path were we find the product after the installation
 Set $InstallDir32$      = "%ProgramFiles32Dir%\<path to the product>"
 Set $InstallDir64$      = "%ProgramFiles64Dir%\<path to the product>"
+Set $IniCfgFile$ = "%ScriptPath%\opsi-" + $ProductId$ + ".ini"
 Set $LicenseRequired$ = "false"
 Set $LicensePool$     = "p_" + $ProductId$
 ; ----------------------------------------------------------------
@@ -128,6 +134,8 @@ endif
 ; "%ScriptPath%\setup.exe" /sp- /silent /norestart /SUPPRESSMSGBOXES
 
 [Files_install_32]
+copy "$IniCfgFile$" "$InstallDir32$"
+
 ; Example of recursively copying some files into the installation directory:
 ;
 ; copy -s "%ScriptPath%\files\*.*" "$InstallDir32$"
@@ -159,6 +167,8 @@ endif
 ; "%ScriptPath%\setup.exe" /sp- /silent /norestart /SUPPRESSMSGBOXES
 
 [Files_install_64]
+copy "$IniCfgFile$" "$InstallDir64$"
+
 ; Example of recursively copying some files into the installation directory:
 ;
 ; copy -s "%ScriptPath%\files\*.*" "$InstallDir64$"

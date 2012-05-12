@@ -4,14 +4,24 @@
 ; credits: http://www.opsi.org/credits/
 
 
-Set $MsiId32$ = '{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}'
 Set $UninstallProgram32$ = $InstallDir32$ + "\uninstall.exe"
-
-Set $MsiId64$ = '{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}'
 Set $UninstallProgram64$ = $InstallDir64$ + "\uninstall.exe"
+Set $IniFile32$ = $InstallDir32$ + "\opsi-" + $ProductId$ + ".ini"
+Set $IniFile64$ = $InstallDir64$ + "\opsi-" + $ProductId$ + ".ini"
+
+
 
 if (($INST_SystemType$ = "x86 System") and ($INST_architecture$ = "system specific")) or ($INST_architecture$ = "both") or ($INST_architecture$ = "32 only")
 	Message "Uninstalling " + $ProductId$ + " 32 Bit..."
+
+	if FileExists($IniFile32$)
+    		Set $MsiIdOld32$ = GetValueFromInifile($IniFile32$,"X86","MsiId32","{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}")
+    		if not (GetRegistryStringValue32("[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\" + $MsiIdOld32$ + "] DisplayName") = "")
+            		comment "Old MSI id " + $MsiIdOld32$ + " found in registry, starting msiexec to uninstall old version"
+            		Winbatch_uninstall_msi_old_32
+            		sub_check_exitcode
+    		endif
+	endif
 
 	if FileExists($UninstallProgram32$)
 		comment "Uninstall program found, starting uninstall"
@@ -34,6 +44,14 @@ endif
 if ($INST_SystemType$ = "64 Bit System") and (($INST_architecture$ = "system specific") or ($INST_architecture$ = "both") or ($INST_architecture$ = "64 only"))
 	Message "Uninstalling " + $ProductId$ + " 64 Bit..."
 
+	if FileExists($IniFile64$)
+    		Set $MsiIdOld64$ = GetValueFromInifile($IniFile64$,"X86_64","MsiId64","{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}")
+    		if not (GetRegistryStringValue64("[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\" + $MsiIdOld64$ + "] DisplayName") = "")
+            		comment "Old MSI id " + $MsiIdOld64$ + " found in registry, starting msiexec to uninstall old version"
+            		Winbatch_uninstall_msi_old_64
+            		sub_check_exitcode
+    		endif
+	endif
 	if FileExists($UninstallProgram64$)
 		comment "Uninstall program found, starting uninstall"
 		Winbatch_uninstall_64
@@ -65,6 +83,9 @@ LinkFolder_uninstall
 ; "$UninstallProgram32$" /silent /norestart /SUPPRESSMSGBOXES
 
 
+[Winbatch_uninstall_msi_old_32]
+msiexec /x $MsiIdOld32$ /qb! REBOOT=ReallySuppress
+
 [Winbatch_uninstall_msi_32]
 msiexec /x $MsiId32$ /qb! REBOOT=ReallySuppress
 
@@ -82,6 +103,9 @@ msiexec /x $MsiId32$ /qb! REBOOT=ReallySuppress
 ; === Inno Setup ========================================================================================
 ; "$UninstallProgram64$" /silent /norestart /SUPPRESSMSGBOXES
 
+
+[Winbatch_uninstall_msi_old_64]
+msiexec /x $MsiIdOld64$ /qb! REBOOT=ReallySuppress
 
 [Winbatch_uninstall_msi_64]
 msiexec /x $MsiId64$ /qb! REBOOT=ReallySuppress

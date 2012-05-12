@@ -4,11 +4,19 @@
 ; credits: http://www.opsi.org/credits/
 
 
-Set $MsiId$ = '{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}'
 Set $UninstallProgram$ = $InstallDir$ + "\uninstall.exe"
+Set $IniFile$ = $InstallDir$ + "\opsi-" + $ProductId$ + ".ini"
 
 Message "Uninstalling " + $ProductId$ + " ..."
 
+if FileExists($IniFile$)
+        Set $MsiIdOld$ = GetValueFromInifile($IniFile$,"X86_64","MsiId","{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}")
+        if not (GetRegistryStringValue64("[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\" + $MsiIdOld$ + "] DisplayName") = "")
+                comment "Old MSI id " + $MsiIdOld$ + " found in registry, starting msiexec to uninstall old version"
+                Winbatch_uninstall_msi_old
+                sub_check_exitcode
+        endif
+endif
 if FileExists($UninstallProgram$)
 	comment "Uninstall program found, starting uninstall"
 	Winbatch_uninstall
@@ -38,6 +46,9 @@ LinkFolder_uninstall
 ; === Inno Setup ========================================================================================
 ; "$UninstallProgram$" /silent /norestart /SUPPRESSMSGBOXES
 
+
+[Winbatch_uninstall_msi_old]
+msiexec /x $MsiIdOld$ /qb! REBOOT=ReallySuppress
 
 [Winbatch_uninstall_msi]
 msiexec /x $MsiId$ /qb! REBOOT=ReallySuppress
