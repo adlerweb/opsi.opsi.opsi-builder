@@ -6,8 +6,11 @@
 [Actions]
 requiredWinstVersion >= "4.10.8.6"
 
-DefVar $MsiId$
+; DefVar $MsiId$
+DefVar $MsiIdOld$
 DefVar $UninstallProgram$
+DefVar $IniFile$
+DefVar $IniCfgFile$
 DefVar $LogDir$
 DefVar $ProductId$  
 DefVar $MinimumSpace$
@@ -39,6 +42,7 @@ Set $ProductId$       = "opsi-template"
 Set $MinimumSpace$    = "1 MB"
 ; the path were we find the product after the installation
 Set $InstallDir$      = "%ProgramFiles32Dir%\<path to the product>"
+Set $IniCfgFile$ = "%ScriptPath%\opsi-" + $ProductId$ + ".ini"
 Set $LicenseRequired$ = "false"
 Set $LicensePool$     = "p_" + $ProductId$
 ; ----------------------------------------------------------------
@@ -114,6 +118,9 @@ endif
 ; "%ScriptPath%\setup.exe" /sp- /silent /norestart /SUPPRESSMSGBOXES
 
 [Files_install]
+; copy the ini file to the InstallDir
+copy "$IniCfgFile$" "$InstallDir$"
+
 ; Example of recursively copying some files into the installation directory:
 ;
 ; copy -s "%ScriptPath%\files\*.*" "$InstallDir$"
