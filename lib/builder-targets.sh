@@ -187,7 +187,7 @@ builder_create() {
     # Copy files and convert text files to dos format
     cp -Rv ${PRODUCT_DIR}/OPSI         $INST_DIR
     cp -Rv ${PRODUCT_DIR}/CLIENT_DATA  $INST_DIR
-    find $INST_DIR/CLIENT_DATA -type f | xargs -n1 -iREP sh -c 'file -i $0 | grep "text/plain" && '$CMD_unix2dos' $0 ' REP >/dev/null
+    find $INST_DIR/CLIENT_DATA -type f | xargs -n1 -iREP sh -c 'file -i $0 | grep -v "utf-16" | grep "text/plain" && '$CMD_unix2dos' $0 ' REP >/dev/null
 
     # converting icon file
     local iconfile_src=${DL_DIST_FILE[$ICON_DL_INDEX]}
