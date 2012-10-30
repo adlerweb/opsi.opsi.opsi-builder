@@ -17,6 +17,7 @@ builder_config() {
     CMD_zip="`which zip`"               ; builder_check_error "Command 'zip' not installed"
     CMD_lha="`which lha`"               ; builder_check_error "Command 'lha' not installed"
     CMD_tar="`which tar`"               ; builder_check_error "Command 'tar' not installed"
+    CMD_cabextract="`which cabextract`" ; builder_check_error "Command 'cabextract' not installed"
     CMD_unix2dos="`which unix2dos`"     ; builder_check_error "Command 'unix2dos' not installed"
     CMD_identify="`which identify`"     ; builder_check_error "Command 'identify' (ImageMagick) not installed"
     CMD_zsyncmake="`which zsyncmake`"   ; builder_check_error "Command 'zsyncmake' not installed"

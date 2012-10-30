@@ -68,6 +68,8 @@ function  process_file() {
 	$CMD_tar xzvf $src -C $dst
     elif [ "$format" = "tarbz2" ]; then
 	$CMD_tar xjvf $src -C $dst
+    elif [ "$format" = "cab" ]; then
+	$CMD_cabextract -d $dst $src
     else
 	fatal_error "Unknown compression format: $format"
     fi  
