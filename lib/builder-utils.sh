@@ -188,7 +188,7 @@ convert_image() {
 	$OUTPUT_DIR/removed_black.png
 
     # create the matte
-    convert $OUTPUT_DIR/removed_black.png -channel matte -separate  +matte \
+    convert $OUTPUT_DIR/removed_black.png -channel matte -negate -separate +matte \
 	$OUTPUT_DIR/matte.png
 
     # negate the colors
