@@ -29,6 +29,10 @@ function  retrieve_file() {
 	    fi
 	elif [ "$downloader" = "plowdown" ]; then
 	    plowdown --max-retries=1 -o ${dst%/*} "$src"
+	elif [ "$downloader" = "aria2c" ]; then
+	    #aria2c --seed-time=0 -d ${dst%/*} -o ${dst##*/} "$src"
+	    aria2c --seed-time=0 --allow-overwrite=true -o ${dst##*/} "$src"
+	    mv -f ${dst##*/} ${dst%/*}
 	else
 	    fatal_error "Downloader not implemented: $downloader"
 	fi

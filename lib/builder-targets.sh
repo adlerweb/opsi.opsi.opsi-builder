@@ -338,11 +338,11 @@ EOF
        local file_list=${OUTPUT_DIR}/product-file-list.txt
        local file_sort_list=${OUTPUT_DIR}/product-file-sort-list.txt
        rm -f ${file_list}
-       for cfg_file in `find ${OPSI_REPOS_BASE_DIR} -name "${PN}-${VERSION}-${CREATOR_TAG}*.cfg" -print ` ; do   
+       for cfg_file in `find ${OPSI_REPOS_BASE_DIR} -name "${PN}-*.cfg" -print ` ; do   
 	   . ${cfg_file}
 	   printf "%08d;$cfg_file\n" $REV_RELEASE >> ${file_list}
        done
-       sort -n ${file_list}  > ${file_sort_list}
+       sort -V ${file_list}  > ${file_sort_list}
 
        # Delete the oldest files
        log_debug "base list for calculate purge:"
