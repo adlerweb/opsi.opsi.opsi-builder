@@ -61,11 +61,11 @@ function  process_file() {
     if [ "$format" = "cp" ]; then
 	cp $src $dst
     elif [ "$format" = "7zip" ]; then
-	$CMD_7z x -o$dst $src
+	$CMD_7z x -y -o$dst $src
     elif [ "$format" = "unzip" ]; then
-	$CMD_unzip  $src -d $dst
+	$CMD_unzip  -o $src -d $dst
     elif [ "$format" = "unrar" ]; then
-	$CMD_unrar x $src $dst
+	$CMD_unrar xy $src $dst
     elif [ "$format" = "lha" ]; then
 	$CMD_lha x -w=$dst $src
     elif [ "$format" = "targz" ]; then
