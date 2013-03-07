@@ -1,0 +1,74 @@
+; Copyright (c) uib gmbh (www.uib.de)
+; This sourcecode is owned by uib gmbh
+; and published under the Terms of the General Public License.
+; credits: http://www.opsi.org/credits/
+
+[Initial]
+requiredWinstVersion >= "4.8.6"
+LogLevel=2
+; Log Errors in Logfile but don't abort:
+ExitOnError=false
+; Show syntax errors in the script:
+ScriptErrorMessages=on
+; Dont trace step by step through the script:
+TraceMode=off
+; Let started programs run in front of the winst window
+StayOnTop=false
+
+[Aktionen]
+DefVar $TEMP$
+Set $TEMP$ = EnvVar("TEMP")
+DefVar $LogDir$
+Set $LogDir$ = "%SystemDrive%\tmp"
+DefVar $ExitCode$
+DefVar $ProductId$
+DefVar $InstallDir$
+DefVar $LicenseRequired$
+DefVar $LicensePool$
+
+; ----------------------------------------------------------------
+; - Please edit the following values                             -
+; ----------------------------------------------------------------
+Set $ProductId$       = "opsi-template"
+Set $InstallDir$      = "%ProgramFilesDir%\" + $ProductId$
+Set $LicenseRequired$ = "false"
+Set $LicensePool$     = "p_" + $ProductId$
+; ----------------------------------------------------------------
+
+
+comment "Show product picture"
+ShowBitmap /3 "%ScriptPath%\" + $ProductId$ + ".png" $ProductId$
+
+Message "Uninstalling " + $ProductId$ + " ..."
+
+if FileExists("%ScriptPath%\delsub.ins")
+	comment "Start uninstall sub section"
+	Sub "%ScriptPath%\delsub.ins"
+endif
+
+if not ($LicenseRequired$ = "false")
+	comment "Licensing required, free license used"
+	Sub_free_license
+endif
+
+[Sub_free_license]
+if opsiLicenseManagementEnabled
+	comment "License management is enabled and will be used"
+
+	comment "Trying to free license used for the product"
+	DefVar $result$
+	Set $result$ = FreeLicense($LicensePool$)
+	; If there is an assignment of a license pool to the product, it is possible to use
+	; Set $result$ = FreeLicense("", $ProductId$)
+	;
+	; If there is an assignment of a license pool to a windows software id, it is possible to use
+	; DefVar $WindowsSoftwareId$
+	; $WindowsSoftwareId$ = "..."
+	; set $result$ = FreeLicense("", "", $WindowsSoftwareId$)
+else
+	LogError "Error: licensing required, but license management not enabled"
+	isFatalError
+endif
+
+
+

@@ -226,7 +226,14 @@ builder_create() {
   
   # replace variables from file OPSI/control
   local release_new=${CREATOR_TAG}${RELEASE}
-  sed -e "s!VERSION!$VERSION!g" -e "s!RELEASE!${release_new}!g" -e "s!PRIORITY!$PRIORITY!g" -e "s!ADVICE!$ADVICE!g" ${PRODUCT_DIR}/OPSI/control  >$INST_DIR/OPSI/control
+  # sed -e "s!VERSION!$VERSION!g" -e "s!RELEASE!${release_new}!g" -e "s!PRIORITY!$PRIORITY!g" -e "s!ADVICE!$ADVICE!g" ${PRODUCT_DIR}/OPSI/control  >$INST_DIR/OPSI/control
+  write_control_file $INST_DIR/OPSI/control "Package" "version" "${release_new}"
+  write_control_file $INST_DIR/OPSI/control "Product" "id" "$PN"
+  write_control_file $INST_DIR/OPSI/control "Product" "name" "$NAME"
+  write_control_file $INST_DIR/OPSI/control "Product" "description" "$DESCRIPTION"
+  write_control_file $INST_DIR/OPSI/control "Product" "advice" "$ADVICE"
+  write_control_file $INST_DIR/OPSI/control "Product" "version" "$VERSION"
+  write_control_file $INST_DIR/OPSI/control "Product" "priority" "$PRIORITY"
   
   # Create changelog based on git - if available
   if [ -d "${PRODUCT_DIR}/.git" ] ; then

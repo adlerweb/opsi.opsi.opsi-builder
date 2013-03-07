@@ -1,0 +1,26 @@
+#! /bin/bash
+#
+# This script executes after unpacking files from that archive and registering the product at the server.
+#
+# The following environment variables can be used to obtain information about the current installation:
+#   PRODUCT_ID: id of the current product
+#   CLIENT_DATA_DIR: directory which contains the installed client data
+#
+TMP_DIR=${CLIENT_DATA_DIR}/../${PRODUCT_ID}.tmp
+
+echo 'Restoring previous files...'
+if [ -f $TMP_DIR/psgetsid.exe ]; then
+	mv $TMP_DIR/psgetsid.exe $CLIENT_DATA_DIR/ || exit 1
+fi
+
+echo 'get files if not present'
+if [ ! -f "$CLIENT_DATA_DIR/psgetsid.exe" ]; then
+	cd $CLIENT_DATA_DIR
+	echo 'try to get zip'
+	wget http://download.sysinternals.com/Files/PsTools.zip
+	echo 'unzip'
+	unzip -o PsTools.zip
+fi
+
+echo "Removing temporary files..."
+rm -rf $TMP_DIR

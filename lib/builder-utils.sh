@@ -321,3 +321,21 @@ write_ini_file() {
   done
 }
 
+###################
+# Write control file
+#
+# Create a ini file containing needed information for package uninstall
+#
+# Parameter
+#  file: file to create / modify
+#
+###################
+write_control_file() {
+  local control_file=$1
+  local control_section=$2
+  local control_option=$3
+  local control_value=$4
+  
+  sed -i -e "/^\[$control_section\]/,/^\[.*\]/ s|^\($control_option[ \t]*:[ \t]*\).*$|\1$control_value|" "$control_file"
+}
+

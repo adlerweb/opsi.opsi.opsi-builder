@@ -1,0 +1,122 @@
+[Package]
+version: 2
+depends: 
+incremental: False
+
+[Product]
+type: localboot
+id: opsi-template-with-admin
+name: opsi template for installs with logged in admin
+description: A opsi demo package
+advice: 
+version: 4.0.2
+priority: -20
+licenseRequired: False
+productClasses: 
+setupScript: setup.ins
+uninstallScript: localsetup\uninstall.ins
+updateScript: 
+alwaysScript: 
+onceScript: 
+customScript: 
+userLoginScript: 
+
+[ProductProperty]
+type: bool
+name: debug
+description: should be false for production: switch off keyboard lock and increase loglevel
+default: False
+
+[ProductProperty]
+type: bool
+name: test-set-fatal
+description: test only: if true script result is set to fatal
+default: False
+
+[Changelog]
+opsi-template-with-admin (4.0.2-2) stable; urgency=low
+
+	* requires opsi-winst >= 4.11.3.3
+	* uses /productid switch at opsi-winst call
+	* code cleanup (use of synative instead of 64bit)
+	* property debug: switches loglevel and lock keyboard
+	* code cleanup
+
+ -- detlef oertel <d.oertel@uib.de>  Thu, 19 Sep 2012 15:01:53 +0200
+
+
+opsi-template-with-admin (4.0.2-1) stable; urgency=low
+
+	* requires opsi-winst >= 4.11.3
+	* using SidToName instead of psgetsid.exe
+	* priority set to -20
+	* first reboot is commented (;ExitWindows /ImmediateReboot). Uncomment it if you have problems with the autologon
+
+ -- detlef oertel <d.oertel@uib.de>  Wed, 04 Jul 2012 15:01:53 +0200
+
+
+opsi-template-with-admin (1.0-8) stable; urgency=low
+
+	* localdomain = "%PCNAME%"
+
+ -- Jan Schneider <j.schneider@uib.de>  Wed,  4 May 2011 14:09:00 +0100
+
+opsi-template-with-admin (1.0-7) stable; urgency=low
+
+	* localdomain = "." for nt6
+
+ -- Jan Schneider <j.schneider@uib.de>  Tue, 29 Mar 2011 17:56:00 +0100
+
+opsi-template-with-admin (1.0-6) stable; urgency=low
+
+	* postinst fix: /bin/bash
+	* preinst fix: no more case sensitiv for pcgetsid.exe
+
+ -- detlef oertel <d.oertel@uib.de>  Tue, 30 Dec 2010 15:01:53 +0200
+
+opsi-template-with-admin (1.0-5) testing; urgency=low
+
+	* added support for opsi 4.0 opsi-client-agent
+	* scripts renamed to setup.ins, local_setup.ins and uninstall.ins
+
+ -- detlef oertel <d.oertel@uib.de>  Tue, 13 Jun 2010 15:01:53 +0200
+
+
+opsi-template-with-admin (1.0-4) testing; urgency=low
+
+	* new (64 bit) functions of winst 4.10.3 used
+
+ -- detlef oertel <d.oertel@uib.de>  Fri, 16 Apr 2010 15:01:53 +0200
+
+
+opsi-template-with-admin (1.0-3) testing; urgency=low
+
+	* in [sub_fetch_SearchResult] changed ("$s$") to ('$s$')
+
+ -- detlef oertel <d.oertel@uib.de>  Tue, 26 Jan 2010 15:01:53 +0200
+
+opsi-template-with-admin (1.0-2) stable; urgency=low
+
+	* added support for 64 Bit
+	* code cleanup
+	* added psgetsid for international support
+
+ -- detlef oertel <d.oertel@uib.de>  Mon, 14 Dec 2009 15:01:53 +0200
+
+
+opsi-template-with-admin (1.0-1) stable; urgency=low
+
+	* initial package based on http://www.opsi.org/opsi_wiki/TemplateForInstallationsAsTemporaryLocalAdmin
+
+ -- detlef oertel <d.oertel@uib.de>  Mon, 13 Nov 2009 15:01:53 +0200
+
+
+
+
+
+
+
+
+
+
+
