@@ -15,7 +15,7 @@ if FileExists($UninstallProgram$)
 	sub_check_exitcode
 endif
 if FileExists($IniFile$)
-        Set $MsiIdOld$ = GetValueFromInifile($IniFile$,"X86","MsiId","{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}")
+        Set $MsiIdOld$ = GetValueFromInifile($IniFile$,"X86_64","MsiId","{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}")
         if not (GetRegistryStringValue32("[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\" + $MsiIdOld$ + "] DisplayName") = "")
                 comment "Old MSI id " + $MsiIdOld$ + " found in registry, starting msiexec to uninstall old version"
                 Winbatch_uninstall_msi_old

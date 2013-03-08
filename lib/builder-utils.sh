@@ -313,6 +313,9 @@ write_ini_file() {
   local ini_file=$1
   local var_file=$2
   
+  # create file if not exist
+  touch $ini_file
+  
   # publish some other variables
   for var in VENDOR PN VERSION RELEASE TYPE CREATOR_TAG CREATOR_NAME CREATOR_EMAIL ; do
     $CMD_iniset $ini_file --COMMON ${var}="${!var}"
