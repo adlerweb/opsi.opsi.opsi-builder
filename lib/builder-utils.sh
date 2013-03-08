@@ -226,6 +226,8 @@ create_winst_varfile() {
   local var_file=$1
   
   echo -n >$var_file
+  echo "; Opsi Builder Variables" >>$var_file
+  echo >>$var_file
   for (( i = 0 ; i < ${#DL_SOURCE[@]} ; i++ )) ; do
     if [ -z ${DL_WINST_NAME[$i]} ] ; then continue ; fi
     
@@ -316,11 +318,13 @@ write_ini_file() {
     $CMD_iniset $ini_file --COMMON ${var}="${!var}"
   done
   
+  echo "; Opsi INI File Variables" >>$var_file
+  echo >>$var_file
   # publish custom variables
-  for (( i = 0 ; i < ${#OPSI_INI_NAME[@]} ; i++ )) ; do
-    $CMD_iniset $ini_file --${OPSI_INI_SECTION[$i]} ${OPSI_INI_NAME[$i]}="${OPSI_INI_VALUE[$i]}"
-    echo "DefVar \$${OPSI_INI_NAME[$i]}\$" >>$var_file
-    echo "Set    \$${OPSI_INI_NAME[$i]}\$ = \"${OPSI_INI_VALUE[$i]}\""  >>$var_file
+  for (( i = 0 ; i < ${#OPSI_INI_OPTION[@]} ; i++ )) ; do
+    $CMD_iniset $ini_file --${OPSI_INI_SECTION[$i]} ${OPSI_INI_OPTION[$i]}="${OPSI_INI_VALUE[$i]}"
+    echo "DefVar \$${OPSI_INI_OPTION[$i]}\$" >>$var_file
+    echo "Set    \$${OPSI_INI_OPTION[$i]}\$ = \"${OPSI_INI_VALUE[$i]}\""  >>$var_file
   done
 
   echo >>$var_file
