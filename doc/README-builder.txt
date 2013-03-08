@@ -10,6 +10,13 @@
      yum install ImageMagick
      yum install git
 
+# requirements
+    https://pypi.python.org/pypi/martINI for writing ini files
+    aria2c for torrent downloads
+    cabextract
+    lha
+    unzip
+    unrar
 
 # Please check the conf/opsi-builder.conf for detailed information
 
