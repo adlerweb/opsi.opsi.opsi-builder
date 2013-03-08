@@ -1,0 +1,30 @@
+[Package]
+version: 2
+depends: 
+incremental: False
+
+[Product]
+type: localboot
+id: opsi-template
+name: opsi template product
+description: A template for opsi products
+advice: 
+version: 4.0.2
+priority: 0
+licenseRequired: True
+productClasses: 
+setupScript: setup32.ins
+uninstallScript: uninstall32.ins
+updateScript: 
+alwaysScript: 
+onceScript: 
+customScript: 
+userLoginScript:
+
+[ProductDependency]
+action: setup
+requiredProduct: sereby.aio
+requiredStatus: installed
+requirementType: before
+
+

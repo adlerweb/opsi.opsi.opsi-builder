@@ -1,0 +1,69 @@
+; Copyright (c) uib gmbh (www.uib.de)
+; This sourcecode is owned by uib gmbh
+; and published under the Terms of the General Public License.
+; credits: http://www.opsi.org/en/credits/
+
+[Actions]
+requiredWinstVersion >= "4.11.2.6"
+
+DefVar $MsiIdOld$
+DefVar $IniFile$
+DefVar $IniCfgFile$
+DefVar $LogDir$
+DefVar $ExitCode$
+DefVar $ProductId$
+DefVar $InstallDir$
+DefVar $LicenseRequired$
+DefVar $LicensePool$
+
+Set $LogDir$ = "%SystemDrive%\tmp"
+
+; The token BUILDER_VARIABLES will be replaced by opsi-builder.sh
+; and adds the following variables:
+;   from builder-product.cfg :  all variables definded by attribute WINST[index]
+;   from builder-product.cfg :  VENDOR PN VERSION RELEASE PRIORITY ADVICE TYPE   
+;   from opsi-builder.cfg    :  CREATOR_TAG CREATOR_NAME CREATOR_EMAIL           
+;   auto generated winst-variables
+;         $IconFile$: path to product picture
+;
+@@BUILDER_VARIABLES@@
+
+; ----------------------------------------------------------------
+; - Please edit the following values                             -
+; ----------------------------------------------------------------
+Set $InstallDir$      = "%ProgramFiles32Dir%\<path to the product>"
+Set $LicenseRequired$ = "false"
+Set $LicensePool$     = "p_" + $ProductId$
+; ----------------------------------------------------------------
+
+Set $IniCfgFile$ = "%ScriptPath%\opsi-" + $ProductId$ + ".ini"
+
+comment "Show product picture"
+ShowBitmap "%ScriptPath%\" + $ProductId$ + ".png" $ProductId$
+
+Message "Uninstalling " + $ProductId$ + " ..."
+
+if FileExists("%ScriptPath%\delsub32.ins")
+	comment "Start uninstall sub section"
+	Sub "%ScriptPath%\delsub32.ins"
+endif
+
+if $LicenseRequired$ = "true"
+	comment "Licensing required, free license used"
+	Sub_free_license
+endif
+
+[Sub_free_license]
+comment "License management is enabled and will be used"
+
+comment "Trying to free license used for the product"
+DefVar $result$
+Set $result$ = FreeLicense($LicensePool$)
+; If there is an assignment of a license pool to the product, it is possible to use
+; Set $result$ = FreeLicense("", $ProductId$)
+;
+; If there is an assignment of a license pool to a windows software id, it is possible to use
+; DefVar $WindowsSoftwareId$
+; $WindowsSoftwareId$ = "..."
+; set $result$ = FreeLicense("", "", $WindowsSoftwareId$)
+

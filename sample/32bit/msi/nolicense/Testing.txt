@@ -1,0 +1,28 @@
+*** Qualitiymanagement/Testing procedure
+
+- Product:
+        - Name: productname
+        - Version: xxx
+        - Release: yyyy
+
+- Environment
+        - OS: Native windows XP-32Bit installation
+	- Preinstalled packages: None (also no aio)
+	- Files used while testing:
+                File1: http://domain.de/file.ext
+
+- Testing process:
+        OPSI-action:
+                - Installation (without dependencies like AIO/Firefox): ??
+        Result:   
+                - File extensions related to program: ??
+                - Start menu entry: ??
+                - Starting/using program: viewer works, File1 is shown correctly: ??
+
+        OPSI-action:
+                - Uninstall
+        Result:
+                - File extensions related to program: unrelated: ??
+                - Start menu entry: none: ??
+
+
