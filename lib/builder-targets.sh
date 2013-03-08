@@ -214,7 +214,7 @@ builder_create() {
   
   # write ini file
   local ini_file=${INST_DIR}/CLIENT_DATA/opsi-$PN.ini
-  write_ini_file  $ini_file
+  write_ini_file  $ini_file $var_file
   
   # add the new vaiables to all *.ins winst files
   for inst_file in `find ${INST_DIR}/CLIENT_DATA -type f -name "*.ins"` ; do

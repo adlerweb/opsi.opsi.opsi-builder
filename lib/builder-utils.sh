@@ -235,7 +235,7 @@ create_winst_varfile() {
   done
   
   # publish some other variables
-  for var in VENDOR PN VERSION RELEASE PRIORITY ADVICE TYPE CREATOR_TAG CREATOR_NAME CREATOR_EMAIL ; do
+  for var in VENDOR PN VERSION RELEASE PRIORITY NAME ADVICE TYPE CREATOR_TAG CREATOR_NAME CREATOR_EMAIL ; do
     echo "DefVar \$${var}\$"            >>$var_file
     echo "Set    \$${var}\$ = \"${!var}\""  >>$var_file
   done
@@ -309,6 +309,7 @@ function calc_release() {
 ###################
 write_ini_file() {
   local ini_file=$1
+  local var_file=$2
   
   # publish some other variables
   for var in VENDOR PN VERSION RELEASE TYPE CREATOR_TAG CREATOR_NAME CREATOR_EMAIL ; do
@@ -318,7 +319,11 @@ write_ini_file() {
   # publish custom variables
   for (( i = 0 ; i < ${#OPSI_INI_NAME[@]} ; i++ )) ; do
     $CMD_iniset $ini_file --${OPSI_INI_SECTION[$i]} ${OPSI_INI_NAME[$i]}="${OPSI_INI_VALUE[$i]}"
+    echo "DefVar \$${OPSI_INI_NAME[$i]}\$" >>$var_file
+    echo "Set    \$${OPSI_INI_NAME[$i]}\$ = \"${OPSI_INI_VALUE[$i]}\""  >>$var_file
   done
+
+  echo >>$var_file
 }
 
 ###################
