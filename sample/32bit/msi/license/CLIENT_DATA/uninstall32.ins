@@ -15,6 +15,9 @@ DefVar $ProductId$
 DefVar $InstallDir$
 DefVar $LicenseRequired$
 DefVar $LicensePool$
+DefVar $OLD_VERSION$
+DefVar $OLD_CREATOR_TAG$
+DefVar $OLD_RELEASE$
 
 Set $LogDir$ = "%SystemDrive%\tmp"
 
@@ -39,7 +42,7 @@ Set $LicensePool$     = "p_" + $ProductId$
 Set $IniCfgFile$ = "%ScriptPath%\opsi-" + $ProductId$ + ".ini"
 
 comment "Show product picture"
-ShowBitmap "%ScriptPath%\" + $ProductId$ + ".png" $ProductId$
+ShowBitmap "%ScriptPath%\" + $ProductId$ + ".png" $NAME$
 
 Message "Uninstalling " + $ProductId$ + " ..."
 

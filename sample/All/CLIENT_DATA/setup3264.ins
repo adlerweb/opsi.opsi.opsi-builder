@@ -8,9 +8,11 @@ requiredWinstVersion >= "4.11.2.6"
 
 DefVar $MsiIdOld32$
 DefVar $UninstallProgram32$
+DefVar $UninstallProgramOld32$
 DefVar $IniFile32$
 DefVar $MsiIdOld64$
 DefVar $UninstallProgram64$
+DefVar $UninstallProgramOld64$
 DefVar $IniFile64$
 DefVar $IniCfgFile$
 DefVar $LogDir$
@@ -24,6 +26,9 @@ DefVar $LicenseKey$
 DefVar $LicensePool$
 DefVar $INST_SystemType$
 DefVar $INST_architecture$
+DefVar $OLD_VERSION$
+DefVar $OLD_CREATOR_TAG$
+DefVar $OLD_RELEASE$
 
 Set $INST_SystemType$ = GetSystemType
 set $INST_architecture$ = GetProductProperty("install_architecture","system specific")
@@ -62,7 +67,7 @@ if not(HasMinimumSpace ("%SystemDrive%", $MinimumSpace$))
 	; Stop process and set installation status to failed
 else
 	comment "Show product picture"
-	ShowBitmap "%ScriptPath%\" + $ProductId$ + ".png" $ProductId$
+	ShowBitmap "%ScriptPath%\" + $ProductId$ + ".png" $NAME$
 	
 	if FileExists("%ScriptPath%\delsub3264.ins")
 		comment "Start uninstall sub section"
@@ -77,7 +82,7 @@ else
 	comment "installing"
 
 	if (($INST_SystemType$ = "x86 System") and ($INST_architecture$ = "system specific")) or ($INST_architecture$ = "both") or ($INST_architecture$ = "32 only")
-		Message "Installing " + $ProductId$ + " 32 Bit..."
+		Message "Installing " + $ProductId$ + " "+ $VERSION$ + "-" + $CREATOR_TAG$ + $RELEASE$ + " 32 Bit..."
 		comment "Start setup program"
 		ChangeDirectory "%SCRIPTPATH%"
 		Winbatch_install_32
@@ -91,7 +96,7 @@ else
 	endif
 
 	if ($INST_SystemType$ = "64 Bit System") and (($INST_architecture$ = "system specific") or ($INST_architecture$ = "both") or ($INST_architecture$ = "64 only"))
-		Message "Installing " + $ProductId$ + " 64 Bit..."
+		Message "Installing " + $ProductId$ + " "+ $VERSION$ + "-" + $CREATOR_TAG$ + $RELEASE$ + " 64 Bit..."
 		comment "Start setup program"
 		ChangeDirectory "%SCRIPTPATH%"
 		Winbatch_install_64

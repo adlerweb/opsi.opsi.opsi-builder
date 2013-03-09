@@ -13,6 +13,9 @@ DefVar $LogDir$
 DefVar $ExitCode$
 DefVar $ProductId$
 DefVar $InstallDir$
+DefVar $OLD_VERSION$
+DefVar $OLD_CREATOR_TAG$
+DefVar $OLD_RELEASE$
 
 Set $LogDir$ = "%SystemDrive%\tmp"
 
@@ -30,12 +33,14 @@ Set $LogDir$ = "%SystemDrive%\tmp"
 ; - Please edit the following values                             -
 ; ----------------------------------------------------------------
 Set $InstallDir$      = "%ProgramFiles64Dir%\<path to the product>"
+Set $LicenseRequired$ = "false"
+Set $LicensePool$     = "p_" + $ProductId$
 ; ----------------------------------------------------------------
 
 Set $IniCfgFile$ = "%ScriptPath%\opsi-" + $ProductId$ + ".ini"
 
 comment "Show product picture"
-ShowBitmap "%ScriptPath%\" + $ProductId$ + ".png" $ProductId$
+ShowBitmap "%ScriptPath%\" + $ProductId$ + ".png" $NAME$
 
 Message "Uninstalling " + $ProductId$ + " ..."
 

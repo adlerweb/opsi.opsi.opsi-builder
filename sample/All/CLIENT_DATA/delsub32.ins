@@ -4,16 +4,31 @@
 ; credits: http://www.opsi.org/en/credits/
 
 
+Set $UninstallProgramOld$ = $InstallDir$ + $UninstallProg$
 Set $UninstallProgram$ = $InstallDir$ + "\uninstall.exe"
 Set $IniFile$ = $InstallDir$ + "\opsi-" + $ProductId$ + ".ini"
 
-Message "Uninstalling " + $ProductId$ + " ..."
+if FileExists($IniFile$)
+	Set $OLD_VERSION$ = GetValueFromInifile($IniFile$,"COMMON","VERSION","")
+	Set $OLD_CREATOR_TAG$ = GetValueFromInifile($IniFile$,"COMMON","CREATOR_TAG","")
+	Set $OLD_RELEASE$ = GetValueFromInifile($IniFile$,"COMMON","RELEASE","")
+endif
+Message "Uninstalling " + $ProductId$ + " " + $OLD_VERSION$ + "-" + $OLD_CREATOR_TAG$ + $OLD_RELEASE$ + " ..."
 
+if FileExists($IniFile$)
+        Set $UninstallProgramOld$ = GetValueFromInifile($IniFile$,"X86","UninstallProg","XXXXXXXX.exe")
+	if FileExists($UninstallProgramOld$)
+		comment "Uninstall program found, starting uninstall"
+		Winbatch_uninstall_old
+		sub_check_exitcode
+	endif
+endif
 if FileExists($UninstallProgram$)
 	comment "Uninstall program found, starting uninstall"
 	Winbatch_uninstall
 	sub_check_exitcode
 endif
+
 if FileExists($IniFile$)
         Set $MsiIdOld$ = GetValueFromInifile($IniFile$,"X86","MsiId","{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}")
         if not (GetRegistryStringValue32("[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\" + $MsiIdOld$ + "] DisplayName") = "")
@@ -37,6 +52,18 @@ Registry_uninstall /32Bit
 comment "Delete program shortcuts"
 LinkFolder_uninstall
 
+[Winbatch_uninstall_old]
+; Choose one of the following examples as basis for program uninstall
+;
+; === Nullsoft Scriptable Install System ================================================================
+; maby better Call as
+; Winbatch_uninstall /WaitforProcessending "Au_.exe" /Timeoutseconds 10
+; "$UninstallProgramOld$" /S
+;
+; === Inno Setup ========================================================================================
+; "$UninstallProgramOld$" /silent /norestart /SUPPRESSMSGBOXES /nocancel
+
+
 [Winbatch_uninstall]
 ; Choose one of the following examples as basis for program uninstall
 ;
@@ -48,6 +75,9 @@ LinkFolder_uninstall
 ; === Inno Setup ========================================================================================
 ; "$UninstallProgram$" /silent /norestart /SUPPRESSMSGBOXES /nocancel
 
+
+[Winbatch_uninstall_msi_old]
+msiexec /x $MsiIdOld$ /qb! REBOOT=ReallySuppress
 
 [Winbatch_uninstall_msi]
 msiexec /x $MsiId$ /qb! REBOOT=ReallySuppress

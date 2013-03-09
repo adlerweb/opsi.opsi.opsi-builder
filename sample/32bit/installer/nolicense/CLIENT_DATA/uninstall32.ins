@@ -7,12 +7,16 @@
 requiredWinstVersion >= "4.11.2.6"
 
 DefVar $UninstallProgram$
+DefVar $UninstallProgramOld$
 DefVar $IniFile$
 DefVar $IniCfgFile$
 DefVar $LogDir$
 DefVar $ExitCode$
 DefVar $ProductId$
 DefVar $InstallDir$
+DefVar $OLD_VERSION$
+DefVar $OLD_CREATOR_TAG$
+DefVar $OLD_RELEASE$
 
 Set $LogDir$ = "%SystemDrive%\tmp"
 
@@ -35,7 +39,7 @@ Set $InstallDir$      = "%ProgramFiles32Dir%\<path to the product>"
 Set $IniCfgFile$ = "%ScriptPath%\opsi-" + $ProductId$ + ".ini"
 
 comment "Show product picture"
-ShowBitmap "%ScriptPath%\" + $ProductId$ + ".png" $ProductId$
+ShowBitmap "%ScriptPath%\" + $ProductId$ + ".png" $NAME$
 
 Message "Uninstalling " + $ProductId$ + " ..."
 

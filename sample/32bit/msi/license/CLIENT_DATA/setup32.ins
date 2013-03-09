@@ -17,6 +17,9 @@ DefVar $ExitCode$
 DefVar $LicenseRequired$
 DefVar $LicenseKey$
 DefVar $LicensePool$
+DefVar $OLD_VERSION$
+DefVar $OLD_CREATOR_TAG$
+DefVar $OLD_RELEASE$
 
 Set $LogDir$ = "%SystemDrive%\tmp"
 
@@ -51,14 +54,14 @@ if not(HasMinimumSpace ("%SystemDrive%", $MinimumSpace$))
 	; Stop process and set installation status to failed
 else
 	comment "Show product picture"
-	ShowBitmap "%ScriptPath%\" + $ProductId$ + ".png" $ProductId$
+	ShowBitmap "%ScriptPath%\" + $ProductId$ + ".png" $NAME$
 	
 	if FileExists("%ScriptPath%\delsub32.ins")
 		comment "Start uninstall sub section"
 		Sub "%ScriptPath%\delsub32.ins"
 	endif
 	
-	Message "Installing " + $ProductId$ + " ..."
+	Message "Installing " + $ProductId$ + " "+ $VERSION$ + "-" + $CREATOR_TAG$ + $RELEASE$ + " ..."
 	
 	if $LicenseRequired$ = "true"
 		comment "Licensing required, reserve license and get license key"

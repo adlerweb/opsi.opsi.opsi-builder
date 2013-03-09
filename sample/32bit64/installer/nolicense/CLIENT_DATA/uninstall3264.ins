@@ -7,8 +7,10 @@
 requiredWinstVersion >= "4.11.2.6"
 
 DefVar $UninstallProgram32$
+DefVar $UninstallProgramOld32$
 DefVar $IniFile32$
 DefVar $UninstallProgram64$
+DefVar $UninstallProgramOld64$
 DefVar $IniFile64$
 DefVar $IniCfgFile$
 DefVar $LogDir$
@@ -18,6 +20,9 @@ DefVar $InstallDir32$
 DefVar $InstallDir64$
 DefVar $INST_SystemType$
 DefVar $INST_architecture$
+DefVar $OLD_VERSION$
+DefVar $OLD_CREATOR_TAG$
+DefVar $OLD_RELEASE$
 
 Set $INST_SystemType$ = GetSystemType
 set $INST_architecture$ = GetProductProperty("install_architecture","system specific")
@@ -44,7 +49,7 @@ Set $InstallDir64$    = "%ProgramFiles64Dir%\<path to the product>"
 Set $IniCfgFile$ = "%ScriptPath%\opsi-" + $ProductId$ + ".ini"
 
 comment "Show product picture"
-ShowBitmap "%ScriptPath%\" + $ProductId$ + ".png" $ProductId$
+ShowBitmap "%ScriptPath%\" + $ProductId$ + ".png" $NAME$
 
 Message "Uninstalling " + $ProductId$ + " ..."
 

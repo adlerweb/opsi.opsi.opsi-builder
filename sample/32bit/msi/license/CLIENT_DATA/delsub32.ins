@@ -6,7 +6,12 @@
 
 Set $IniFile$ = $InstallDir$ + "\opsi-" + $ProductId$ + ".ini"
 
-Message "Uninstalling " + $ProductId$ + " ..."
+if FileExists($IniFile$)
+	Set $OLD_VERSION$ = GetValueFromInifile($IniFile$,"COMMON","VERSION","")
+	Set $OLD_CREATOR_TAG$ = GetValueFromInifile($IniFile$,"COMMON","CREATOR_TAG","")
+	Set $OLD_RELEASE$ = GetValueFromInifile($IniFile$,"COMMON","RELEASE","")
+endif
+Message "Uninstalling " + $ProductId$ + " " + $OLD_VERSION$ + "-" + $OLD_CREATOR_TAG$ + $OLD_RELEASE$ + " ..."
 
 if FileExists($IniFile$)
         Set $MsiIdOld$ = GetValueFromInifile($IniFile$,"X86","MsiId","{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}")
@@ -30,6 +35,9 @@ Registry_uninstall /32Bit
 
 comment "Delete program shortcuts"
 LinkFolder_uninstall
+
+[Winbatch_uninstall_msi_old]
+msiexec /x $MsiIdOld$ /qb! REBOOT=ReallySuppress
 
 [Winbatch_uninstall_msi]
 msiexec /x $MsiId$ /qb! REBOOT=ReallySuppress

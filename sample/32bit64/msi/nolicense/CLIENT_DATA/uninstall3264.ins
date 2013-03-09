@@ -18,6 +18,9 @@ DefVar $InstallDir32$
 DefVar $InstallDir64$
 DefVar $INST_SystemType$
 DefVar $INST_architecture$
+DefVar $OLD_VERSION$
+DefVar $OLD_CREATOR_TAG$
+DefVar $OLD_RELEASE$
 
 Set $INST_SystemType$ = GetSystemType
 set $INST_architecture$ = GetProductProperty("install_architecture","system specific")
@@ -44,7 +47,7 @@ Set $InstallDir64$    = "%ProgramFiles64Dir%\<path to the product>"
 Set $IniCfgFile$ = "%ScriptPath%\opsi-" + $ProductId$ + ".ini"
 
 comment "Show product picture"
-ShowBitmap "%ScriptPath%\" + $ProductId$ + ".png" $ProductId$
+ShowBitmap "%ScriptPath%\" + $ProductId$ + ".png" $NAME$
 
 Message "Uninstalling " + $ProductId$ + " ..."
 

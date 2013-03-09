@@ -5,14 +5,29 @@
 
 
 Set $UninstallProgram32$ = $InstallDir32$ + "\uninstall.exe"
+Set $UninstallProgramOld32$ = $InstallDir32$ + "\" + $UninstallProg32$
 Set $IniFile32$ = $InstallDir32$ + "\opsi-" + $ProductId$ + ".ini"
 
 Set $UninstallProgram64$ = $InstallDir64$ + "\uninstall.exe"
+Set $UninstallProgramOld64$ = $InstallDir64$ + "\" + $UninstallProg64$
 Set $IniFile64$ = $InstallDir64$ + "\opsi-" + $ProductId$ + ".ini"
 
 if (($INST_SystemType$ = "x86 System") and ($INST_architecture$ = "system specific")) or ($INST_architecture$ = "both") or ($INST_architecture$ = "32 only")
-	Message "Uninstalling " + $ProductId$ + " 32 Bit..."
+	if FileExists($IniFile32$)
+    		Set $OLD_VERSION$ = GetValueFromInifile($IniFile32$,"COMMON","VERSION","")
+	        Set $OLD_CREATOR_TAG$ = GetValueFromInifile($IniFile32$,"COMMON","CREATOR_TAG","")
+	        Set $OLD_RELEASE$ = GetValueFromInifile($IniFile32$,"COMMON","RELEASE","")
+	endif
+	Message "Uninstalling " + $ProductId$ + " "+ $OLD_VERSION$ + "-" + $OLD_CREATOR_TAG$ + $OLD_RELEASE$ + " 32 Bit..."
 
+        if FileExists($IniFile32$)
+		Set $UninstallProgramOld32$ = GetValueFromInifile($IniFile$,"X86","UninstallProg32","XXXXXXXX.exe")
+		if FileExists($UninstallProgramOld32$)
+			comment "Uninstall program found, starting uninstall"
+			Winbatch_uninstall_old_32
+			sub_check_exitcode
+		endif
+        endif
 	if FileExists($UninstallProgram32$)
 		comment "Uninstall program found, starting uninstall"
 		Winbatch_uninstall_32
@@ -26,8 +41,21 @@ if (($INST_SystemType$ = "x86 System") and ($INST_architecture$ = "system specif
 endif
 
 if ($INST_SystemType$ = "64 Bit System") and (($INST_architecture$ = "system specific") or ($INST_architecture$ = "both") or ($INST_architecture$ = "64 only"))
-	Message "Uninstalling " + $ProductId$ + " 64 Bit..."
+	if FileExists($IniFile64$)
+    		Set $OLD_VERSION$ = GetValueFromInifile($IniFile64$,"COMMON","VERSION","")
+	        Set $OLD_CREATOR_TAG$ = GetValueFromInifile($IniFile64$,"COMMON","CREATOR_TAG","")
+	        Set $OLD_RELEASE$ = GetValueFromInifile($IniFile64$,"COMMON","RELEASE","")
+	endif
+	Message "Uninstalling " + $ProductId$ + " "+ $OLD_VERSION$ + "-" + $OLD_CREATOR_TAG$ + $OLD_RELEASE$ + " 64 Bit..."
 
+        if FileExists($IniFile64$)
+		Set $UninstallProgramOld64$ = GetValueFromInifile($IniFile$,"X86_64","UninstallProg64","XXXXXXXX.exe")
+		if FileExists($UninstallProgramOld64$)
+			comment "Uninstall program found, starting uninstall"
+			Winbatch_uninstall_old_64
+			sub_check_exitcode
+		endif
+        endif
 	if FileExists($UninstallProgram64$)
 		comment "Uninstall program found, starting uninstall"
 		Winbatch_uninstall_64
@@ -43,6 +71,17 @@ endif
 comment "Delete program shortcuts"
 LinkFolder_uninstall
 
+[Winbatch_uninstall_old_32]
+; Choose one of the following examples as basis for program uninstall
+;
+; === Nullsoft Scriptable Install System ================================================================
+; maby better Call as
+; Winbatch_uninstall /WaitforProcessending "Au_.exe" /Timeoutseconds 10
+; "$UninstallProgramOld32$" /S
+;
+; === Inno Setup ========================================================================================
+; "$UninstallProgramOld32$" /silent /norestart /SUPPRESSMSGBOXES /nocancel 
+
 [Winbatch_uninstall_32]
 ; Choose one of the following examples as basis for program uninstall
 ;
@@ -54,11 +93,21 @@ LinkFolder_uninstall
 ; === Inno Setup ========================================================================================
 ; "$UninstallProgram32$" /silent /norestart /SUPPRESSMSGBOXES /nocancel 
 
-
 [Files_uninstall_32]
 ; Example for recursively deleting the installation directory (don't forget the trailing backslash):
 ;
 ; delete -sf "$InstallDir32$\"
+
+[Winbatch_uninstall_old_64]
+; Choose one of the following examples as basis for program uninstall
+;
+; === Nullsoft Scriptable Install System ================================================================
+; maby better Call as
+; Winbatch_uninstall /WaitforProcessending "Au_.exe" /Timeoutseconds 10
+; "$UninstallProgramOld64$" /S
+;
+; === Inno Setup ========================================================================================
+; "$UninstallProgramOld64$" /silent /norestart /SUPPRESSMSGBOXES /nocancel
 
 [Winbatch_uninstall_64]
 ; Choose one of the following examples as basis for program uninstall
@@ -71,6 +120,11 @@ LinkFolder_uninstall
 ; === Inno Setup ========================================================================================
 ; "$UninstallProgram64$" /silent /norestart /SUPPRESSMSGBOXES /nocancel
 
+[Winbatch_uninstall_msi_old_64]
+msiexec /x $MsiIdOld64$ /qb! REBOOT=ReallySuppress
+
+[Winbatch_uninstall_msi_64]
+msiexec /x $MsiId64$ /qb! REBOOT=ReallySuppress
 
 [Files_uninstall_64]
 ; Example for recursively deleting the installation directory:
