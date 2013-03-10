@@ -215,10 +215,10 @@ builder_create() {
   # write ini file
   local ini_file=${INST_DIR}/CLIENT_DATA/opsi-$PN.ini
   write_ini_file  $ini_file $var_file
-
+  
   echo ";Hardcoded opsi vars" >>$var_file
   echo "Set    \$ProductId\$ = \"$PN\""  >>$var_file
-
+  
   # add the new vaiables to all *.ins winst files
   for inst_file in `find ${INST_DIR}/CLIENT_DATA -type f -name "*.ins"` ; do
     sed -i -e "/@@BUILDER_VARIABLES@@/ {
@@ -356,33 +356,33 @@ EOF
     local file_sort_list_release=${OUTPUT_DIR}/product-file-sort-list-release.txt
     local file_sort_list_final=${OUTPUT_DIR}/product-file-sort-list-final.txt
     rm -f ${file_list}
-
+    
     # first uniq sort all cfg based on version
     for cfg_file in `find ${OPSI_REPOS_PRODUCT_DIR} -name "${PN}-*.cfg" -print ` ; do
-    . ${cfg_file}
-    echo $REV_VERSION >> ${file_list}
+      . ${cfg_file}
+      echo $REV_VERSION >> ${file_list}
     done
     sort -V ${file_list} | uniq > ${file_sort_list_version}
-
+    
     # second uniq sort all versions based in release
     for pkg_version in `cat ${file_sort_list_version}` ; do
-     for cfg_file_ver in ${OPSI_REPOS_PRODUCT_DIR}/${PN}-${pkg_version}-*.cfg ; do
-      . ${cfg_file_ver}
-      echo ${pkg_version}-$REV_CREATOR_TAG$REV_RELEASE >> ${file_sort_list_release}
-     done
+      for cfg_file_ver in ${OPSI_REPOS_PRODUCT_DIR}/${PN}-${pkg_version}-*.cfg ; do
+        . ${cfg_file_ver}
+        echo ${pkg_version}-$REV_CREATOR_TAG$REV_RELEASE >> ${file_sort_list_release}
+      done
     done
     sort -V ${file_sort_list_release} | uniq > ${file_sort_list_final}
     
     # third create versionrelease
     for release_file_list in `cat ${file_sort_list_final}` ; do
-    . ${OPSI_REPOS_PRODUCT_DIR}/${PN}-${release_file_list}.cfg
+      . ${OPSI_REPOS_PRODUCT_DIR}/${PN}-${release_file_list}.cfg
       echo "${OPSI_REPOS_PRODUCT_DIR}/${PN}-${release_file_list}.cfg" >> ${file_sort_list}
     done
     
     # Delete the oldest files
     log_debug "base list for calculate purge:"
     for cfg_sort_file in `head -n-${limit} ${file_sort_list}` ; do
-
+      
       . ${cfg_sort_file}
       if [ "${REV_STATUS}" != "${OPSI_REPOS_PURGE_STATUS}" ] ; then continue; fi
       

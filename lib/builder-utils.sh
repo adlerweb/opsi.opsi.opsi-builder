@@ -329,7 +329,7 @@ write_ini_file() {
     echo "DefVar \$${OPSI_INI_OPTION[$i]}\$" >>$var_file
     echo "Set    \$${OPSI_INI_OPTION[$i]}\$ = \"${OPSI_INI_VALUE[$i]}\""  >>$var_file
   done
-
+  
   echo >>$var_file
 }
 
