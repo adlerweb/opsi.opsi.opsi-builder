@@ -358,7 +358,7 @@ EOF
     rm -f ${file_list}
 
     # first uniq sort all cfg based on version
-    for cfg_file in `find ${OPSI_REPOS_BASE_DIR} -name "${PN}-*.cfg" -print ` ; do
+    for cfg_file in `find ${OPSI_REPOS_PRODUCT_DIR} -name "${PN}-*.cfg" -print ` ; do
     . ${cfg_file}
     echo $REV_VERSION >> ${file_list}
     done
@@ -366,7 +366,7 @@ EOF
 
     # second uniq sort all versions based in release
     for pkg_version in `cat ${file_sort_list_version}` ; do
-     for cfg_file_ver in ${OPSI_REPOS_BASE_DIR}/${PN}-${pkg_version}-*.cfg ; do
+     for cfg_file_ver in ${OPSI_REPOS_PRODUCT_DIR}/${PN}-${pkg_version}-*.cfg ; do
       . ${cfg_file_ver}
       echo ${pkg_version}-$REV_CREATOR_TAG$REV_RELEASE >> ${file_sort_list_release}
      done
@@ -375,7 +375,7 @@ EOF
     
     # third create versionrelease
     for release_file_list in `cat ${file_sort_list_final}` ; do
-    . ${OPSI_REPOS_BASE_DIR}/${PN}-${release_file_list}.cfg
+    . ${OPSI_REPOS_PRODUCT_DIR}/${PN}-${release_file_list}.cfg
       printf "%08d;$cfg_file\n" $REV_VERSION-$REV_CREATOR_TAG$REV_RELEASE >> ${file_sort_list}
     done
 #    for cfg_file in `find ${OPSI_REPOS_BASE_DIR} -name "{PN}-${VERSION}-${CREATOR_TAG}*.cfg" -print ` ; do
