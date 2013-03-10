@@ -192,8 +192,13 @@ convert_image() {
   $OUTPUT_DIR/removed_black.png
   
   # create the matte
+  if [ `convert | grep Version | awk '{print $3}' | sed "s/-.*//" | sed "s/\.//g"` -le 670 ] ; then
+  convert $OUTPUT_DIR/removed_black.png -channel matte -separate +matte \
+  $OUTPUT_DIR/matte.png
+  else
   convert $OUTPUT_DIR/removed_black.png -channel matte -negate -separate +matte \
   $OUTPUT_DIR/matte.png
+  fi
   
   # negate the colors
   convert $OUTPUT_DIR/matte.png -negate -blur 0x1 \
