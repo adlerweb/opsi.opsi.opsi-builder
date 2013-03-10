@@ -352,12 +352,37 @@ EOF
     # Find all revision files and sort them
     local file_list=${OUTPUT_DIR}/product-file-list.txt
     local file_sort_list=${OUTPUT_DIR}/product-file-sort-list.txt
+    local file_sort_list_version=${OUTPUT_DIR}/product-file-sort-list-version.txt
+    local file_sort_list_release=${OUTPUT_DIR}/product-file-sort-list-release.txt
+    local file_sort_list_final=${OUTPUT_DIR}/product-file-sort-list-final.txt
     rm -f ${file_list}
-    for cfg_file in `find ${OPSI_REPOS_BASE_DIR} -name "{PN}-${VERSION}-${CREATOR_TAG}*.cfg" -print ` ; do
-      . ${cfg_file}
-      printf "%08d;$cfg_file\n" $REV_RELEASE >> ${file_list}
+
+    # first uniq sort all cfg based on version
+    for cfg_file in `find ${OPSI_REPOS_BASE_DIR} -name "${PN}-*.cfg" -print ` ; do
+    . ${cfg_file}
+    echo $REV_VERSION >> ${file_list}
     done
-    sort -n ${file_list}  > ${file_sort_list}
+    sort -V ${file_list} | uniq > ${file_sort_list_version}
+
+    # second uniq sort all versions based in release
+    for pkg_version in `cat ${file_sort_list_version}` ; do
+     for cfg_file_ver in ${OPSI_REPOS_BASE_DIR}/${PN}-${pkg_version}-*.cfg ; do
+      . ${cfg_file_ver}
+      echo ${pkg_version}-$REV_CREATOR_TAG$REV_RELEASE >> ${file_sort_list_release}
+     done
+    done
+    sort -V ${file_sort_list_release} | uniq > ${file_sort_list_final}
+    
+    # third create versionrelease
+    for release_file_list in `cat ${file_sort_list_final}` ; do
+    . ${OPSI_REPOS_BASE_DIR}/${PN}-${release_file_list}.cfg
+      printf "%08d;$cfg_file\n" $REV_VERSION-$REV_CREATOR_TAG$REV_RELEASE >> ${file_sort_list}
+    done
+#    for cfg_file in `find ${OPSI_REPOS_BASE_DIR} -name "{PN}-${VERSION}-${CREATOR_TAG}*.cfg" -print ` ; do
+#      . ${cfg_file}
+#      printf "%08d;$cfg_file\n" $REV_RELEASE >> ${file_list}
+#    done
+#    sort -n ${file_list}  > ${file_sort_list}
     
     # Delete the oldest files
     log_debug "base list for calculate purge:"
