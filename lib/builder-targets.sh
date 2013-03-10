@@ -392,7 +392,7 @@ EOF
       
       # Paranoid ... check the files to delete first
       if [ ! -z "${dir_base}" ] && [ -d "${OPSI_REPOS_BASE_DIR}" ] && [ ! -z "$product_file" ] ; then
-        rm -f ${product_file}* ${cfg_file}
+        rm -f ${product_file}* ${cfg_sort_file}
         
         # remove directory - if it's empty
         if [ $(ls -1A ${dir_base} | wc -l) -eq 0 ]; then
