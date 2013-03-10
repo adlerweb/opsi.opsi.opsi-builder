@@ -376,7 +376,7 @@ EOF
     # third create versionrelease
     for release_file_list in `cat ${file_sort_list_final}` ; do
     . ${OPSI_REPOS_PRODUCT_DIR}/${PN}-${release_file_list}.cfg
-      printf "%08d;$cfg_file\n" $REV_VERSION-$REV_CREATOR_TAG$REV_RELEASE >> ${file_sort_list}
+      printf "%08d;${OPSI_REPOS_PRODUCT_DIR}/${PN}-${release_file_list}.cfg\n" $REV_VERSION-$REV_CREATOR_TAG$REV_RELEASE >> ${file_sort_list}
     done
 #    for cfg_file in `find ${OPSI_REPOS_BASE_DIR} -name "{PN}-${VERSION}-${CREATOR_TAG}*.cfg" -print ` ; do
 #      . ${cfg_file}
@@ -387,6 +387,7 @@ EOF
     # Delete the oldest files
     log_debug "base list for calculate purge:"
     for cfg_sort_file in `tail -${limit} ${file_sort_list} | ${CMD_comm} -13 - ${file_sort_list}` ; do
+#    for cfg_sort_file in `tail -${limit} ${file_sort_list}` ; do
       
       local cfg_file=`echo $cfg_sort_file | cut -f 2 -d ";"`
       . ${cfg_file}
