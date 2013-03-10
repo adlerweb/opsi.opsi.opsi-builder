@@ -4,7 +4,7 @@
 ; credits: http://www.opsi.org/en/credits/
 
 
-Set $UninstallProgramOld$ = $InstallDir$ + $UninstallProg$
+Set $UninstallProgramOld$ = $InstallDir$ + "\" + $UninstallProg$
 Set $UninstallProgram$ = $InstallDir$ + "\uninstall.exe"
 Set $IniFile$ = $InstallDir$ + "\opsi-" + $ProductId$ + ".ini"
 
@@ -65,7 +65,7 @@ LinkFolder_uninstall
 [Files_uninstall]
 ; Example for recursively deleting the installation directory:
 ;
-; del -sf "$InstallDir$\"
+del -sf "$InstallDir$\"
 
 [Registry_uninstall]
 ; Example of deleting a registry key:
