@@ -148,39 +148,39 @@ convert_image() {
   local wight=`${CMD_identify} -format "%w" $src`
   ${CMD_identify} -format "%wx%h" $src
   
-  # Add a white border to the image so that the convert to stansparent can go around an image
+  # Add a white border to the image so that the convert to transparent can go around an image
   convert -bordercolor White -border 3x3 $src $OUTPUT_DIR/bigger.png
   
   # first resize the image to the new aspect ratio and add white borders
   if [ $wight -lt $hight ] ; then
-    # Its higher so force x160 and let imagemagic decide the right wight
-    # then add white to the rest of the image to fit 160x160
+    # Its higher so force x166 and let imagemagic decide the right wight
+    # then add white to the rest of the image to fit 166x166
     log_debug "Icon Wight: $wight < Hight: $hight"
-    convert $OUTPUT_DIR/bigger.png -colorspace RGB -resize x160 \
-    -size 160x160 xc:white +swap -gravity center  -composite \
+    convert $OUTPUT_DIR/bigger.png -colorspace RGB -resize x166 \
+    -size 166x166 xc:white +swap -gravity center  -composite \
     -modulate 110 -colors 256 png8:$OUTPUT_DIR/resize.png
     builder_check_error "converting image"
     elif [ $wight -gt $hight ] ; then
-    # Its wider so force 160x and let imagemagic decide the right hight
-    # then add white to the rest of the image to fit 160x160
+    # Its wider so force 166x and let imagemagic decide the right hight
+    # then add white to the rest of the image to fit 166x166
     log_debug "Icon Wight: $wight > Hight: $hight"
-    convert $OUTPUT_DIR/bigger.png -colorspace RGB -resize 160x \
-    -size 160x160 xc:white +swap -gravity center  -composite \
+    convert $OUTPUT_DIR/bigger.png -colorspace RGB -resize 166x \
+    -size 166x166 xc:white +swap -gravity center  -composite \
     -modulate 110 -colors 256 png8:$OUTPUT_DIR/resize.png
     builder_check_error "converting image"
     elif [ $wight -eq $hight ] ; then
-    # Its scare so force 160x160
+    # Its scare so force 166x166
     log_debug "Icon Wight: $wight = Hight: $hight"
-    convert $OUTPUT_DIR/bigger.png -colorspace RGB -resize 160x160 \
-    -size 160x160 xc:white +swap -gravity center  -composite \
+    convert $OUTPUT_DIR/bigger.png -colorspace RGB -resize 166x166 \
+    -size 166x166 xc:white +swap -gravity center  -composite \
     -modulate 110 -colors 256 png8:$OUTPUT_DIR/resize.png
     builder_check_error "converting image"
   else
-    # Imagemagic is unable to detect the aspect ratio so just force 160x160
+    # Imagemagic is unable to detect the aspect ratio so just force 166x166
     # this could result in streched images
     log_debug "Icon Wight: $wight unknown Hight: $hight"
-    convert $OUTPUT_DIR/bigger.png -colorspace RGB -resize 160x160 \
-    -size 160x160 xc:white +swap -gravity center  -composite \
+    convert $OUTPUT_DIR/bigger.png -colorspace RGB -resize 166x166 \
+    -size 166x166 xc:white +swap -gravity center  -composite \
     -modulate 110 -colors 256 png8:$OUTPUT_DIR/resize.png
     builder_check_error "converting image"
   fi
@@ -209,7 +209,14 @@ convert_image() {
   
   # you are going for: white interior, black exterior
   composite -compose CopyOpacity $OUTPUT_DIR/matte-negated.png $OUTPUT_DIR/resize.png \
-  $dst
+  $OUTPUT_DIR/smaller.png
+  
+  # now remove the added border that was added eaerlier
+  # Chop 3 pixels from the top and left side of
+  convert -chop 3x3 -rotate 180 $OUTPUT_DIR/smaller.png $OUTPUT_DIR/rotate.png
+  
+  # Chop 3 pixels from the bottom and right side
+  convert -chop 3x3 -rotate 180 $OUTPUT_DIR/rotate.png $dst
   
   # New size
   # identify -format "%wx%h" $dst
