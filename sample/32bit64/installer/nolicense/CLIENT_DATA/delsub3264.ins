@@ -120,12 +120,6 @@ delete -sf "$InstallDir32$\"
 ; === Inno Setup ========================================================================================
 ; "$UninstallProgram64$" /silent /norestart /SUPPRESSMSGBOXES /nocancel
 
-[Winbatch_uninstall_msi_old_64]
-msiexec /x $MsiIdOld64$ /qb! REBOOT=ReallySuppress
-
-[Winbatch_uninstall_msi_64]
-msiexec /x $MsiId64$ /qb! REBOOT=ReallySuppress
-
 [Files_uninstall_64]
 ; Example for recursively deleting the installation directory:
 ;
