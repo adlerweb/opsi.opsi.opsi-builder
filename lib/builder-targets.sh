@@ -190,7 +190,6 @@ builder_create() {
   # Copy files and convert text files to dos format
   cp -Rv ${PRODUCT_DIR}/OPSI         $INST_DIR
   cp -Rv ${PRODUCT_DIR}/CLIENT_DATA  $INST_DIR
-  find $INST_DIR/CLIENT_DATA -type f | xargs -n1 -iREP sh -c 'file -i $0 | grep -v "utf-16" | grep "text/plain" && '$CMD_unix2dos' $0 ' REP >/dev/null
   
   # converting icon file
   local iconfile_src=${DL_DIST_FILE[$ICON_DL_INDEX]}
@@ -226,7 +225,10 @@ builder_create() {
                     d
     }" $inst_file
   done
-  
+
+  # convert to dos file linefeed
+  find $INST_DIR/CLIENT_DATA -type f | xargs -n1 -iREP sh -c 'file -i $0 | grep -v "utf-16" | grep "text/plain" && '$CMD_unix2dos' $0 ' REP >/dev/null
+
   # replace variables from file OPSI/control
   local release_new=${CREATOR_TAG}${RELEASE}
   # sed -e "s!VERSION!$VERSION!g" -e "s!RELEASE!${release_new}!g" -e "s!PRIORITY!$PRIORITY!g" -e "s!ADVICE!$ADVICE!g" ${PRODUCT_DIR}/OPSI/control  >$INST_DIR/OPSI/control
