@@ -4,7 +4,6 @@
 ; credits: http://www.opsi.org/en/credits/
 
 
-Set $UninstallProgramOld$ = $InstallDir$ + $UninstallProg$
 Set $UninstallProgram$ = $InstallDir$ + "\uninstall.exe"
 Set $IniFile$ = $InstallDir$ + "\opsi-" + $ProductId$ + ".ini"
 
@@ -16,7 +15,8 @@ endif
 Message "Uninstalling " + $ProductId$ + " " + $OLD_VERSION$ + "-" + $OLD_CREATOR_TAG$ + $OLD_RELEASE$ + " ..."
 
 if FileExists($IniFile$)
-        Set $UninstallProgramOld$ = GetValueFromInifile($IniFile$,"X86","UninstallProg","XXXXXXXX.exe")
+        Set $UninstallProg$ = GetValueFromInifile($IniFile$,"X86","UninstallProg","XXXXXXXX.exe")
+	Set $UninstallProgramOld$ = $InstallDir$ + $UninstallProg$
 	if FileExists($UninstallProgramOld$)
 		comment "Uninstall program found, starting uninstall"
 		Winbatch_uninstall_old
