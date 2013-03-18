@@ -4,7 +4,7 @@
 ; credits: http://www.opsi.org/en/credits/
 
 
-Set $UninstallProgram$ = $InstallDir$ + "\uninstall.exe"
+Set $UninstallProgram$ = $InstallDir$ + "\" + $UninstallProg$
 Set $IniFile$ = $InstallDir$ + "\opsi-" + $ProductId$ + ".ini"
 
 if FileExists($IniFile$)

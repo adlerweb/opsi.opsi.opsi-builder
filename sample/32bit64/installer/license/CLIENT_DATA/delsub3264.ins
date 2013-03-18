@@ -4,10 +4,10 @@
 ; credits: http://www.opsi.org/en/credits/
 
 
-Set $UninstallProgram32$ = $InstallDir32$ + "\uninstall.exe"
+Set $UninstallProgram32$ = $InstallDir32$ + "\" + $UninstallProg32$
 Set $IniFile32$ = $InstallDir32$ + "\opsi-" + $ProductId$ + ".ini"
 
-Set $UninstallProgram64$ = $InstallDir64$ + "\uninstall.exe"
+Set $UninstallProgram64$ = $InstallDir64$ + "\" + $UninstallProg64$
 Set $IniFile64$ = $InstallDir64$ + "\opsi-" + $ProductId$ + ".ini"
 
 if (($INST_SystemType$ = "x86 System") and ($INST_architecture$ = "system specific")) or ($INST_architecture$ = "both") or ($INST_architecture$ = "32 only")
@@ -19,7 +19,7 @@ if (($INST_SystemType$ = "x86 System") and ($INST_architecture$ = "system specif
 	Message "Uninstalling " + $ProductId$ + " "+ $OLD_VERSION$ + "-" + $OLD_CREATOR_TAG$ + $OLD_RELEASE$ + " 32 Bit..."
 
         if FileExists($IniFile32$)
-		Set $UninstallProg32$ = GetValueFromInifile($IniFile$,"X86","UninstallProg32","XXXXXXXX.exe")
+		Set $UninstallProg32$ = GetValueFromInifile($IniFile32$,"X86","UninstallProg32","XXXXXXXX.exe")
 		Set $UninstallProgramOld32$ = $InstallDir32$ + "\" + $UninstallProg32$
 		if FileExists($UninstallProgramOld32$)
 			comment "Uninstall program found, starting uninstall"
@@ -48,7 +48,7 @@ if ($INST_SystemType$ = "64 Bit System") and (($INST_architecture$ = "system spe
 	Message "Uninstalling " + $ProductId$ + " "+ $OLD_VERSION$ + "-" + $OLD_CREATOR_TAG$ + $OLD_RELEASE$ + " 64 Bit..."
 
         if FileExists($IniFile64$)
-		Set $UninstallProgr64$ = GetValueFromInifile($IniFile$,"X86_64","UninstallProg64","XXXXXXXX.exe")
+		Set $UninstallProgr64$ = GetValueFromInifile($IniFile64$,"X86_64","UninstallProg64","XXXXXXXX.exe")
 		Set $UninstallProgramOld64$ = $InstallDir64$ + "\" + $UninstallProg64$
 		if FileExists($UninstallProgramOld64$)
 			comment "Uninstall program found, starting uninstall"

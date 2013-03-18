@@ -65,7 +65,7 @@ function  process_file() {
     elif [ "$format" = "unzip" ]; then
     $CMD_unzip  -o $src -d $dst
     elif [ "$format" = "unrar" ]; then
-    $CMD_unrar xy $src $dst
+    $CMD_unrar x -y $src $dst
     elif [ "$format" = "lha" ]; then
     $CMD_lha x -w=$dst $src
     elif [ "$format" = "targz" ]; then
