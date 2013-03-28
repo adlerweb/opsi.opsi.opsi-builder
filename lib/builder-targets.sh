@@ -202,9 +202,11 @@ builder_create() {
     DL_EXTRACT_PATH[$i]=${INST_DIR}/CLIENT_DATA/${DL_ARCH[$i]}/${DL_EXTRACT_TO[$i]}
     local format=${DL_EXTRACT_FORMAT[$i]}
     if [ -z "$format" ] ; then format="cp"; fi
+    local option=${DL_EXTRACT_OPTION[$i]}
+    if [ -z "$option" ] ; then option=""; fi
     
     mkdir -p ${DL_EXTRACT_PATH[$i]}
-    process_file $format ${DL_DIST_FILE[$i]} ${DL_EXTRACT_PATH[$i]}
+    process_file $format ${DL_DIST_FILE[$i]} ${DL_EXTRACT_PATH[$i]} $option
   done
   
   # create winst variables

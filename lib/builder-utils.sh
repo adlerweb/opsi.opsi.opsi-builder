@@ -55,25 +55,26 @@ function  process_file() {
   local format=$1
   local src=$2
   local dst=$3
+  local option=$4
   
   log_debug "Compression format: $format"
   
   if [ "$format" = "cp" ]; then
     cp $src $dst
     elif [ "$format" = "7zip" ]; then
-    $CMD_7z x -y -o$dst $src
+    $CMD_7z x -y $option -o$dst $src
     elif [ "$format" = "unzip" ]; then
-    $CMD_unzip  -o $src -d $dst
+    $CMD_unzip $option -o $src -d $dst
     elif [ "$format" = "unrar" ]; then
-    $CMD_unrar x -y $src $dst
+    $CMD_unrar x -y $option $src $dst
     elif [ "$format" = "lha" ]; then
-    $CMD_lha x -w=$dst $src
+    $CMD_lha x $option -w=$dst $src
     elif [ "$format" = "targz" ]; then
-    $CMD_tar xzvf $src -C $dst
+    $CMD_tar xzvf $option $src -C $dst
     elif [ "$format" = "tarbz2" ]; then
-    $CMD_tar xjvf $src -C $dst
+    $CMD_tar xjvf $option $src -C $dst
     elif [ "$format" = "cab" ]; then
-    $CMD_cabextract -d $dst $src
+    $CMD_cabextract $option -d $dst $src
   else
     fatal_error "Unknown compression format: $format"
   fi
