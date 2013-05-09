@@ -291,10 +291,17 @@ builder_publish() {
   
   # Upload file to repository
   mkdir -p ${OPSI_REPOS_PRODUCT_DIR}
-  
+
   echo "Publishing opsi-package to ${OPSI_REPOS_PRODUCT_DIR}"
   local src=${OUTPUT_DIR}/${OPSI_REPOS_FILE_PATTERN}
   local dst=${OPSI_REPOS_PRODUCT_DIR}/${OPSI_REPOS_FILE_PATTERN}
+  
+  # Link dir
+  if [ "${OPSI_REPOS_LINK_NEWBUILDS}" = "true" ] ; then
+    mkdir -p ${OPSI_REPOS_BASE_DIR}/.new_builds
+    ln -sf ${OPSI_REPOS_PRODUCT_DIR}  ${OPSI_REPOS_BASE_DIR}/.new_builds/${OPSI_REPOS_FILE_PATTERN}
+    builder_check_error "Can't Link file $dst.opsi --> $dst.opsi"
+  fi
   
   # copy files
   if [ "${OPSI_REPOS_UPLOAD_OPSI}" = "true" ] ; then
