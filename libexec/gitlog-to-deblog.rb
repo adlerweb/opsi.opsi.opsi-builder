@@ -4,8 +4,9 @@ require 'erb'
 # Determines package name from the origin url on github. It's hackish, but it
 # works (mostly).
 def pkgname
-  originurl = `git config --get remote.origin.url`.strip
-  _, pkgname = originurl.match(/\/([a-z0-9\-_]+).git/i).to_a
+  # originurl = `basename $(git config --get remote.origin.url)`.strip
+  pkgname = `basename $(git config --get remote.origin.url) .git | tr '\n' ' '`
+  # _, pkgname = originurl.match(/\/([a-z0-9\-_]+).git/i).to_a
   pkgname
 end
 
