@@ -1,0 +1,23 @@
+[Package]
+version: RELEASE
+depends: 
+incremental: False
+
+[Product]
+type: localboot
+id: pmviewer
+name: PlanMaker Viewer
+description: PlanMaker Viewer 2010
+advice: ADVICE
+version: VERSION
+priority: PRIORITY
+licenseRequired: False
+productClasses: 
+setupScript: setup32.ins
+uninstallScript: uninstall32.ins
+updateScript: 
+alwaysScript: 
+onceScript: 
+customScript: 
+userLoginScript: 
+

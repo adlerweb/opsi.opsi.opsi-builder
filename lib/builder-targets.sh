@@ -24,6 +24,7 @@ builder_config() {
   CMD_comm="`which comm`"             ; builder_check_error "Command 'comm' not installed"
   CMD_sha1sum="`which sha1sum`"       ; builder_check_error "Command 'sha1sum' not installed"
   CMD_iniset="`which ini-set`"        ; builder_check_error "Command 'ini-set' (martINI a pypi project) not installed"
+  CMD_ruby="`which ruby`"             ; builder_check_error "Command 'ruby' not installed"
   
   # Check temp dir
   test -d ${TMP_DIR}
@@ -244,12 +245,20 @@ builder_create() {
   
   # Create changelog based on git - if available
   if [ -d "${PRODUCT_DIR}/.git" ] ; then
-    git log --date-order --date=short | \
-    sed -e '/^commit.*$/d' | \
-    awk '/^Author/ {sub(/\\$/,""); getline t; print $0 t; next}; 1' | \
-    sed -e 's/^Author: //g' | \
-    sed -e 's/>Date:   \([0-9]*-[0-9]*-[0-9]*\)/>\t\1/g' | \
-    sed -e 's/^\(.*\) \(\)\t\(.*\)/\3    \1    \2/g' > $INST_DIR/OPSI/changelog.txt
+    # new changelog format
+    echo "" >> $INST_DIR/OPSI/control
+    echo "[Changelog]" >> $INST_DIR/OPSI/control
+    $CMD_ruby $BASEDIR/libexec/gitlog-to-deblog.rb >> $INST_DIR/OPSI/control
+    echo "" >> $INST_DIR/OPSI/control
+    rm -f $INST_DIR/OPSI/changelog.txt
+    
+    #old changelog format
+    #git log --date-order --date=short | \
+    #sed -e '/^commit.*$/d' | \
+    #awk '/^Author/ {sub(/\\$/,""); getline t; print $0 t; next}; 1' | \
+    #sed -e 's/^Author: //g' | \
+    #sed -e 's/>Date:   \([0-9]*-[0-9]*-[0-9]*\)/>\t\1/g' | \
+    #sed -e 's/^\(.*\) \(\)\t\(.*\)/\3    \1    \2/g' > $INST_DIR/OPSI/changelog.txt
   else
     echo "No git repository present."
   fi
