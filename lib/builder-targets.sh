@@ -25,6 +25,7 @@ builder_config() {
   CMD_sha1sum="`which sha1sum`"       ; builder_check_error "Command 'sha1sum' not installed"
   CMD_iniset="`which ini-set`"        ; builder_check_error "Command 'ini-set' (martINI a pypi project) not installed"
   CMD_ruby="`which ruby`"             ; builder_check_error "Command 'ruby' not installed"
+  CMD_gpg="`which gpg`"               ; builder_check_error "Command 'gpg' not installed"
   
   # Check temp dir
   test -d ${TMP_DIR}
@@ -340,7 +341,11 @@ builder_publish() {
     ${CMD_zsyncmake} -u ${OPSI_REPOS_FILE_PATTERN}.opsi -o "${dst}.opsi.zsync" "${src}.opsi"
     builder_check_error "Can't create zsync file"
   fi
-  
+
+  if [ "${OPSI_REPOS_UPLOAD_OPSI_GPG}" = "true" ] ; then
+    ${CMD_gpg} --batch --passphrase ${GPG_PASSPHRASE} --output "${dst}.opsi.gpg" --detach-sig "${src}.opsi"
+    builder_check_error "Can't create gpg file"
+  fi
   # Create revision file for this
   local rev_file=${OPSI_REPOS_PRODUCT_DIR}/${PN}-${VERSION}-${CREATOR_TAG}${RELEASE}.cfg
     cat > $rev_file <<EOF
