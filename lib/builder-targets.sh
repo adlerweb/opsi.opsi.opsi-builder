@@ -233,6 +233,9 @@ builder_create() {
   # convert to dos file linefeed
   find $INST_DIR/CLIENT_DATA -type f | xargs -n1 -iREP sh -c 'file -i $0 | grep -v "utf-16" | grep "text/plain" && '$CMD_unix2dos' $0 ' REP >/dev/null
 
+  # set exec bit on executeables
+  find $INST_DIR/CLIENT_DATA -type f -iname "*.exe" -o -iname "*.bat" -o -iname "*.cmd" -o -iname "*.msi" -o -iname "*.msp" | xargs chmod +x -v
+
   # replace variables from file OPSI/control
   local release_new=${CREATOR_TAG}${RELEASE}
   # sed -e "s!VERSION!$VERSION!g" -e "s!RELEASE!${release_new}!g" -e "s!PRIORITY!$PRIORITY!g" -e "s!ADVICE!$ADVICE!g" ${PRODUCT_DIR}/OPSI/control  >$INST_DIR/OPSI/control
@@ -346,6 +349,7 @@ builder_publish() {
     ${CMD_gpg} --batch --passphrase ${GPG_PASSPHRASE} --output "${dst}.opsi.gpg" --detach-sig "${src}.opsi"
     builder_check_error "Can't create gpg file"
   fi
+
   # Create revision file for this
   local rev_file=${OPSI_REPOS_PRODUCT_DIR}/${PN}-${VERSION}-${CREATOR_TAG}${RELEASE}.cfg
     cat > $rev_file <<EOF
