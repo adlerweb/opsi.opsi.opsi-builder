@@ -23,7 +23,7 @@ function  retrieve_file() {
   else
     rm -f $dst
     if [ "$downloader" = "wget" ]; then
-      wget  --tries=1 -O $dst --timeout=5 -q --no-verbose "$src"
+      wget  --no-check-certificate --tries=1 -O $dst --timeout=5 -q --no-verbose "$src"
       if [ "$?" == "1" ] ; then
         rm $dst
       fi
