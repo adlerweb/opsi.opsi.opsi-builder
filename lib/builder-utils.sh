@@ -243,13 +243,18 @@ create_winst_varfile() {
   
   echo -n >$var_file
   echo "; Opsi Builder Variables" >>$var_file
+  
+  # make the scriptpath for the binarys configurable
+  echo "DefVar \$BinaryPath\$" >>$var_file
+  echo "Set    \$BinaryPath\$ = \"%ScriptPath%\""  >>$var_file
+  
   echo >>$var_file
   for (( i = 0 ; i < ${#DL_SOURCE[@]} ; i++ )) ; do
     if [ -z ${DL_WINST_NAME[$i]} ] ; then continue ; fi
     
     if [ ! -z "${DL_ARCH[$i]}" ] ; then arch_str="${DL_ARCH[$i]}\\" ; fi
     echo "DefVar \$${DL_WINST_NAME[$i]}\$" >>$var_file
-    echo "Set    \$${DL_WINST_NAME[$i]}\$ = \"%ScriptPath%\\${arch_str}${DL_FILE[$i]}\""  >>$var_file
+    echo "Set    \$${DL_WINST_NAME[$i]}\$ = \"\$BinaryPath\$\\${arch_str}${DL_FILE[$i]}\""  >>$var_file
   done
   
   # publish some other variables
@@ -271,7 +276,7 @@ create_winst_varfile() {
     if [ "$index" != "${WINST_VALUE[$i]}" ] ; then
       if [ ! -z "${DL_ARCH[$index]}" ] ; then arch_part="\\\\${DL_ARCH[$index]}" ; fi
       if [ ! -z "${DL_EXTRACT_WINST_PATH[$index]}" ] ; then extr_part="\\\\${DL_EXTRACT_WINST_PATH[$index]}" ; fi
-      local new_val="%ScriptPath%$arch_part$extr_part"
+      local new_val="\$BinaryPath\$$arch_part$extr_part"
       WINST_VALUE[$i]=`echo ${WINST_VALUE[$i]} | sed -e "s#@DL_EXTRACT_WINST_PATH\[[0-9]\]@#$new_val#"`
       log_debug "calculated (DL_EXTRACT_WINST_PATH) WINST_VALUE: ${WINST_VALUE[$i]}"
     fi
