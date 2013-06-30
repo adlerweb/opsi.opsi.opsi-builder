@@ -254,7 +254,7 @@ create_winst_varfile() {
     
     if [ ! -z "${DL_ARCH[$i]}" ] ; then arch_str="${DL_ARCH[$i]}\\" ; fi
     echo "DefVar \$${DL_WINST_NAME[$i]}\$" >>$var_file
-    echo "Set    \$${DL_WINST_NAME[$i]}\$ = \"\$BinaryPath\$\\${arch_str}${DL_FILE[$i]}\""  >>$var_file
+    echo "Set    \$${DL_WINST_NAME[$i]}\$ = \$BinaryPath\$ + \"\\${arch_str}${DL_FILE[$i]}\""  >>$var_file
   done
   
   # publish some other variables
@@ -276,7 +276,7 @@ create_winst_varfile() {
     if [ "$index" != "${WINST_VALUE[$i]}" ] ; then
       if [ ! -z "${DL_ARCH[$index]}" ] ; then arch_part="\\\\${DL_ARCH[$index]}" ; fi
       if [ ! -z "${DL_EXTRACT_WINST_PATH[$index]}" ] ; then extr_part="\\\\${DL_EXTRACT_WINST_PATH[$index]}" ; fi
-      local new_val="\$BinaryPath\$$arch_part$extr_part"
+      local new_val="\$BinaryPath\$ + $arch_part$extr_part"
       WINST_VALUE[$i]=`echo ${WINST_VALUE[$i]} | sed -e "s#@DL_EXTRACT_WINST_PATH\[[0-9]\]@#$new_val#"`
       log_debug "calculated (DL_EXTRACT_WINST_PATH) WINST_VALUE: ${WINST_VALUE[$i]}"
     fi
@@ -285,6 +285,9 @@ create_winst_varfile() {
     echo "Set    \$${WINST_NAME[$i]}\$ = \"${WINST_VALUE[$i]}\""  >>$var_file
   done
   
+  # correct me im a hack
+  sed -e 's#"\$BinaryPath\$ +#\$BinaryPath\$ + "#' -i $var_file
+  sed -e 's#\$BinaryPath\$ + " #\$BinaryPath\$ + "#' -i $var_file
   echo >>$var_file
 }
 
