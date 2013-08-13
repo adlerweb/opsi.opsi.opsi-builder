@@ -192,6 +192,9 @@ builder_create() {
   # Copy files and convert text files to dos format
   cp -Rv ${PRODUCT_DIR}/OPSI         $INST_DIR
   cp -Rv ${PRODUCT_DIR}/CLIENT_DATA  $INST_DIR
+  if [ -d "${PRODUCT_DIR}/SERVER_DATA" ] ; then
+    cp -Rv ${PRODUCT_DIR}/SERVER_DATA  $INST_DIR
+  fi
   
   # converting icon file
   local iconfile_src=${DL_DIST_FILE[$ICON_DL_INDEX]}
