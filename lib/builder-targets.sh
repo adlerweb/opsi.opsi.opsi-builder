@@ -358,6 +358,7 @@ builder_publish() {
     cat > $rev_file <<EOF
 REV_VENDOR=${VENDOR}
 REV_PN=${PN}
+REV_NAME=${NAME}
 REV_VERSION=${VERSION}
 REV_RELEASE=${RELEASE}
 REV_TYPE=${TYPE}
