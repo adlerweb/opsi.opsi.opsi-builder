@@ -1,3 +1,20 @@
+# Opsi Builder to automate the creation of Opsi packages for the Opsi Systen
+#    Copyright (C) 2012  Daniel Schwager
+#    Copyright (C) 2014  Mario Fetka
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as
+#    published by the Free Software Foundation, either version 3 of the
+#    License, or (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 #####################
 # Call user entry point
 ####################
@@ -191,7 +208,9 @@ builder_create() {
   
   # Copy files and convert text files to dos format
   cp -Rv ${PRODUCT_DIR}/OPSI         $INST_DIR
-  cp -Rv ${PRODUCT_DIR}/CLIENT_DATA  $INST_DIR
+  if [ -d "${PRODUCT_DIR}/CLIENT_DATA" ] ; then
+    cp -Rv ${PRODUCT_DIR}/CLIENT_DATA  $INST_DIR
+  fi
   if [ -d "${PRODUCT_DIR}/SERVER_DATA" ] ; then
     cp -Rv ${PRODUCT_DIR}/SERVER_DATA  $INST_DIR
   fi
@@ -241,7 +260,6 @@ builder_create() {
 
   # replace variables from file OPSI/control
   local release_new=${CREATOR_TAG}${RELEASE}
-  # sed -e "s!VERSION!$VERSION!g" -e "s!RELEASE!${release_new}!g" -e "s!PRIORITY!$PRIORITY!g" -e "s!ADVICE!$ADVICE!g" ${PRODUCT_DIR}/OPSI/control  >$INST_DIR/OPSI/control
   write_control_file $INST_DIR/OPSI/control "Package" "version" "${release_new}"
   write_control_file $INST_DIR/OPSI/control "Product" "id" "$PN"
   write_control_file $INST_DIR/OPSI/control "Product" "name" "$NAME"
@@ -258,14 +276,6 @@ builder_create() {
     $CMD_ruby $BASEDIR/libexec/gitlog-to-deblog.rb >> $INST_DIR/OPSI/control
     echo "" >> $INST_DIR/OPSI/control
     rm -f $INST_DIR/OPSI/changelog.txt
-    
-    #old changelog format
-    #git log --date-order --date=short | \
-    #sed -e '/^commit.*$/d' | \
-    #awk '/^Author/ {sub(/\\$/,""); getline t; print $0 t; next}; 1' | \
-    #sed -e 's/^Author: //g' | \
-    #sed -e 's/>Date:   \([0-9]*-[0-9]*-[0-9]*\)/>\t\1/g' | \
-    #sed -e 's/^\(.*\) \(\)\t\(.*\)/\3    \1    \2/g' > $INST_DIR/OPSI/changelog.txt
   else
     echo "No git repository present."
   fi
