@@ -293,7 +293,7 @@ builder_package() {
   
   pushd ${OUTPUT_DIR}
   rm -f ${opsi_file} ${OPSI_REPOS_FILE_PATTERN}.opsi
-  LANG="C" opsi-makeproductfile -v $INST_DIR
+  LANG="C" PYTHONIOENCODING='utf-8' opsi-makeproductfile -v $INST_DIR
   builder_check_error "Building OPSI-package"
   popd
   
