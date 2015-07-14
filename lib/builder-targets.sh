@@ -161,7 +161,7 @@ builder_retrieve() {
       
       mkdir -p ${DIST_CACHE_DIR}/$arch
       DL_DIST_FILE[$i]=${DIST_CACHE_DIR}/$arch/$basename
-      retrieve_file $downloader $src  ${DL_DIST_FILE[$i]}
+      retrieve_file $downloader $src ${DL_DIST_FILE[$i]}
       
       if [ $? != 0 ] ; then
         echo "  Warning: Failed to download file - try next URL"

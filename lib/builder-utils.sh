@@ -30,6 +30,7 @@ function  retrieve_file() {
   local downloader=$1
   local src=$2
   local dst=$3
+  local option=$4
   
   # Check, if the URL is a file URL starting with file://
   if [ -f $dst ] && [ -z ${DIST_FORCE_DOWNLOAD} ]; then
@@ -40,7 +41,7 @@ function  retrieve_file() {
   else
     rm -f $dst
     if [ "$downloader" = "wget" ]; then
-      wget  --no-check-certificate --tries=1 -O $dst --timeout=5 -q --no-verbose "$src"
+      wget --no-check-certificate --header='Cookie: oraclelicense=accept-securebackup-cookie' --tries=1 -O $dst --timeout=5 -q --no-verbose "$src"
       if [ "$?" == "1" ] ; then
         rm $dst
       fi
