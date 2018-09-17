@@ -140,7 +140,7 @@ builder_retrieve() {
     local downloaded=0
     
     # Add private repos to the urls
-    if [ ! -z ${DIST_PRIVATE_REPOS} ]; then
+    if [ ! -z ${DIST_PRIVATE_REPOS} ] && [ -d "${DIST_PRIVATE_REPOS}" ]; then
       urls="${DIST_PRIVATE_REPOS}/$basename;$urls"
     fi
     
