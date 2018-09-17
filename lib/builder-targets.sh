@@ -1,6 +1,7 @@
 # Opsi Builder to automate the creation of Opsi packages for the Opsi Systen
 #    Copyright (C) 2012  Daniel Schwager
 #    Copyright (C) 2014  Mario Fetka
+#    Copyright (C) 2018  Florian Knodt
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -32,7 +33,6 @@ builder_config() {
   CMD_unzip="`which unzip`"           ; builder_check_error "Command 'unzip' not installed"
   CMD_unrar="`which unrar`"           ; builder_check_error "Command 'unrar' not installed"
   CMD_zip="`which zip`"               ; builder_check_error "Command 'zip' not installed"
-  CMD_lha="`which lha`"               ; builder_check_error "Command 'lha' not installed"
   CMD_tar="`which tar`"               ; builder_check_error "Command 'tar' not installed"
   CMD_cabextract="`which cabextract`" ; builder_check_error "Command 'cabextract' not installed"
   CMD_unix2dos="`which unix2dos`"     ; builder_check_error "Command 'unix2dos' not installed"
