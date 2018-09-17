@@ -169,16 +169,13 @@ builder_retrieve() {
         continue;
       fi
       
-      # Check sha1
-      if  [ ! -e "${PRODUCT_DIR}/${basename}.sha1sum" ] && [ "$CHECKSUM_AUTOCREATE" == "true" ] ; then
-        $CMD_sha1sum ${DL_DIST_FILE[$i]}  > ${PRODUCT_DIR}/${basename}.sha1sum
+      # Check sha512
+      local checksum_val=$($CMD_sha512sum ${DL_DIST_FILE[$i]} | cut -d " " -f1)
+      if [ -z ${DL_SHA512[$i]+x} ] ; then
         downloaded=1
-        echo "  WARNING: SHA1 checksum (${DL_DIST_FILE[$i]}.sha1sum) was created dynamically because auf CHECKSUM_AUTOCREATE=$CHECKSUM_AUTOCREATE"
+        echo "  WARNING: SHA512 checksum missing. ${checksum_val}"
       else
-        # testing the checksum of the downloaded files
-        local sha1sum_val=`cat ${PRODUCT_DIR}/${basename}.sha1sum | cut -d " " -f1`
-        local checksum_val=`sha1sum ${DL_DIST_FILE[$i]} | cut -d " " -f1`
-        if [ "$checksum_val" = "$sha1sum_val" ] ; then
+        if [ "$checksum_val" = "${DL_SHA512[$i]}" ] ; then
           downloaded=1
         fi
       fi
@@ -188,6 +185,8 @@ builder_retrieve() {
         echo "  Info: Downloaded successfully"
       else
         echo "  Error: The checksums do not match - try next URL"
+        echo "     DL:  ${checksum_val}"
+        echo "     SET: ${DL_SHA512[$i]}"
       fi
       
     done
