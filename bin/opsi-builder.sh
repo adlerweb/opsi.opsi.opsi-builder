@@ -3,6 +3,7 @@
 # Opsi Builder to automate the creation of Opsi packages for the Opsi Systen
 #    Copyright (C) 2012  Daniel Schwager
 #    Copyright (C) 2014  Mario Fetka
+#    Copyright (C) 2018  Florian Knodt
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -54,8 +55,7 @@ builder_controller() {
 ####################
 # Main
 ####################
-# get the 'real' directory this program stored in (resolve symbolic links)
-PRG=$(readlink -f $0)
+PRG=$0
 BASEDIR=`dirname "$PRG"`
 BASEDIR=`cd "$BASEDIR" && pwd`/..
 
