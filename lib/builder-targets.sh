@@ -29,22 +29,22 @@
 builder_config() {
   
   # Define commands
-  CMD_7z="`which 7z`"                 ; builder_check_error "Command '7z' not installed"
-  CMD_unzip="`which unzip`"           ; builder_check_error "Command 'unzip' not installed"
-  CMD_unrar="`which unrar`"           ; builder_check_error "Command 'unrar' not installed"
-  CMD_zip="`which zip`"               ; builder_check_error "Command 'zip' not installed"
+  CMD_7z="`which 7z`"                 ; builder_check_error "Command '7z' not installed (apt install p7zip-full)"
+  CMD_unzip="`which unzip`"           ; builder_check_error "Command 'unzip' not installed (apt install unzip)"
+  CMD_unrar="`which unrar`"           ; builder_check_error "Command 'unrar' not installed (apt install unrar)"
+  CMD_zip="`which zip`"               ; builder_check_error "Command 'zip' not installed (apt install zip)"
   CMD_lha="`which lha`"               ; builder_check_error "Command 'lha' not installed"
-  CMD_tar="`which tar`"               ; builder_check_error "Command 'tar' not installed"
-  CMD_cabextract="`which cabextract`" ; builder_check_error "Command 'cabextract' not installed"
-  CMD_unix2dos="`which unix2dos`"     ; builder_check_error "Command 'unix2dos' not installed"
-  CMD_identify="`which identify`"     ; builder_check_error "Command 'identify' (ImageMagick) not installed"
-  CMD_zsyncmake="`which zsyncmake`"   ; builder_check_error "Command 'zsyncmake' not installed"
-  CMD_comm="`which comm`"             ; builder_check_error "Command 'comm' not installed"
-  CMD_sha1sum="`which sha1sum`"       ; builder_check_error "Command 'sha1sum' not installed"
-  CMD_iniset="`which ini-set`"        ; builder_check_error "Command 'ini-set' (martINI a pypi project) not installed"
-  CMD_ruby="`which ruby`"             ; builder_check_error "Command 'ruby' not installed"
-  CMD_gpg="`which gpg`"               ; builder_check_error "Command 'gpg' not installed"
-  
+  CMD_tar="`which tar`"               ; builder_check_error "Command 'tar' not installed (apt install tar)"
+  CMD_cabextract="`which cabextract`" ; builder_check_error "Command 'cabextract' not installed (apt install cabextract)"
+  CMD_unix2dos="`which unix2dos`"     ; builder_check_error "Command 'unix2dos' not installed (apt install dos2unix)"
+  CMD_identify="`which identify`"     ; builder_check_error "Command 'identify' not installed (apt install imagemagick)"
+  CMD_zsyncmake="`which zsyncmake`"   ; builder_check_error "Command 'zsyncmake' not installed (apt install zsync)"
+  CMD_comm="`which comm`"             ; builder_check_error "Command 'comm' not installed (apt install coreutils)"
+  CMD_sha512sum="`which sha512sum`"   ; builder_check_error "Command 'sha512sum' not installed (apt install coreutils)"
+  CMD_iniset="`which ini-set`"        ; builder_check_error "Command 'ini-set' not installed (apt install python-pip ; pip install martINI)"
+  CMD_ruby="`which ruby`"             ; builder_check_error "Command 'ruby' not installed (apt install ruby)"
+  CMD_gpg="`which gpg`"               ; builder_check_error "Command 'gpg' not installed  (apt install gpg)"
+
   # Check temp dir
   test -d ${TMP_DIR}
   builder_check_error "temp directory not available: $TMP_DIR"
