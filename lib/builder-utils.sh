@@ -322,6 +322,9 @@ function calc_release() {
   
   # Find all revision files and sort them
   local file_list=`mktemp /tmp/opsi-builder.calc_release.XXXXXXXXXXX`
+
+  [ -d "${OPSI_REPOS_BASE_DIR}" ] || mkdir -p "${OPSI_REPOS_BASE_DIR}"
+
   for cfg_file in `find ${OPSI_REPOS_BASE_DIR} -name "${PN}-${VERSION}-${CREATOR_TAG}*.cfg" -print ` ; do
     . ${cfg_file}
     printf "%08d;$cfg_file\n" $REV_RELEASE >> ${file_list}
