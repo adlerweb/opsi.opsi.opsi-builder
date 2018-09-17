@@ -33,7 +33,6 @@ builder_config() {
   CMD_unzip="`which unzip`"           ; builder_check_error "Command 'unzip' not installed (apt install unzip)"
   CMD_unrar="`which unrar`"           ; builder_check_error "Command 'unrar' not installed (apt install unrar)"
   CMD_zip="`which zip`"               ; builder_check_error "Command 'zip' not installed (apt install zip)"
-  CMD_lha="`which lha`"               ; builder_check_error "Command 'lha' not installed"
   CMD_tar="`which tar`"               ; builder_check_error "Command 'tar' not installed (apt install tar)"
   CMD_cabextract="`which cabextract`" ; builder_check_error "Command 'cabextract' not installed (apt install cabextract)"
   CMD_unix2dos="`which unix2dos`"     ; builder_check_error "Command 'unix2dos' not installed (apt install dos2unix)"

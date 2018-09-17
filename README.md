@@ -34,7 +34,6 @@ python setup.py  install
 	   wget ftp://ftp.univie.ac.at/systems/linux/dag/redhat/el6/en/x86_64/dag/RPMS/nettle-2.2-1.el6.rf.x86_64.rpm
 	   rpm -i aria2-*.rpm nettle-*.rpm
 ````
-* lha ````ftp://ftp.pbone.net/mirror/ftp5.gwdg.de/pub/opensuse/repositories/home:/sawaa/CentOS_CentOS-6/x86_64/lha-1.14i-2.ac20050924p1.el6.ikoi1.x86_64.rpm````
 * unrar	````http://pkgs.repoforge.org/unrar/unrar-4.0.7-1.el6.rf.x86_64.rpm````
 * 7zip	````check README-7zip.txt````
 

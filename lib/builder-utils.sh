@@ -1,6 +1,7 @@
 # Opsi Builder to automate the creation of Opsi packages for the Opsi Systen
 #    Copyright (C) 2012  Daniel Schwager
 #    Copyright (C) 2014  Mario Fetka
+#    Copyright (C) 2018  Florian Knodt
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -85,8 +86,6 @@ function  process_file() {
     $CMD_unzip $option -o $src -d $dst
     elif [ "$format" = "unrar" ]; then
     $CMD_unrar x -y $option $src $dst
-    elif [ "$format" = "lha" ]; then
-    $CMD_lha x $option -w=$dst $src
     elif [ "$format" = "targz" ]; then
     $CMD_tar xzvf $option $src -C $dst
     elif [ "$format" = "tarbz2" ]; then
