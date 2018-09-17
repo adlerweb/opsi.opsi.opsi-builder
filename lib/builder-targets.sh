@@ -145,11 +145,6 @@ builder_retrieve() {
       urls="${DIST_PRIVATE_REPOS}/$basename;$urls"
     fi
     
-    # check existence of CRC file only in non devel mode
-    if [ ! -e "${PRODUCT_DIR}/${basename}.sha1sum" ] && [ "$CHECKSUM_AUTOCREATE" != "true" ] ; then
-      fatal_error "You need to create the checksums with: sha1sum ${DIST_CACHE_DIR}/${basename}  > ${PRODUCT_DIR}/${basename}.sha1sum"
-    fi
-    
     echo "Downloading $basename"
     # check downloading from the defined URLs
     for src in `echo  $urls | sed -e 's/[;,]/\n/g'`  ; do
@@ -194,7 +189,7 @@ builder_retrieve() {
     
     # Ups - no URL works
     if [ $downloaded != 1 ] ; then
-      echo "  Error: can download the file or checksum wrong (sha1sum ${DIST_CACHE_DIR}/${basename}  > ${basename}.sha1sum)"
+      echo "  Error: can download the file or checksum wrong"
       exit 1;
     fi
     
