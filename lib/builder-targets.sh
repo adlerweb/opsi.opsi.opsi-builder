@@ -1,6 +1,7 @@
 # Opsi Builder to automate the creation of Opsi packages for the Opsi Systen
 #    Copyright (C) 2012  Daniel Schwager
 #    Copyright (C) 2014  Mario Fetka
+#    Copyright (C) 2018  Florian Knodt
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -293,7 +294,7 @@ builder_package() {
   
   pushd ${OUTPUT_DIR}
   rm -f ${opsi_file} ${OPSI_REPOS_FILE_PATTERN}.opsi
-  LANG="C" PYTHONIOENCODING='utf-8' opsi-makeproductfile -v $INST_DIR
+  LANG="C" PYTHONIOENCODING='utf-8' opsi-makepackage -v $INST_DIR
   builder_check_error "Building OPSI-package"
   popd
   
