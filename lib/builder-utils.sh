@@ -41,7 +41,7 @@ function  retrieve_file() {
   else
     rm -f $dst
     if [ "$downloader" = "wget" ]; then
-      wget --no-check-certificate --header='Cookie: oraclelicense=accept-securebackup-cookie' --tries=1 -O $dst --timeout=5 -q --no-verbose "$src"
+      wget --header='Cookie: oraclelicense=accept-securebackup-cookie' --tries=1 -O $dst --timeout=5 -q --no-verbose "$src"
       if [ "$?" == "1" ] ; then
         rm $dst
       fi
